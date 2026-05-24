@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חידושי תורה - משפחת וילנסקי</title>
+    <!-- טעינת כלי שהופך טקסט רגיל לעיצוב יפה -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f1ea;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-top: 6px solid #8b6b4f;
+        }
+        /* עיצוב אוטומטי לטקסט מה-README */
+        .content h1 {
+            color: #5c4033;
+            text-align: center;
+            border-bottom: 2px solid #e0dbcd;
+            padding-bottom: 15px;
+            font-size: 2rem;
+        }
+        .content h2 {
+            color: #8b6b4f;
+            margin-top: 30px;
+            border-right: 4px solid #8b6b4f;
+            padding-right: 10px;
+        }
+        .content p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="content" class="content">טוען את דברי התורה...</div>
+</div>
+
+<script>
+    // קוד חכם שמושך את הטקסט החופשי מה-README ומעצב אותו
+    fetch('README.md')
+        .then(response => response.text())
+        .then(text => {
+            document.getElementById('content').innerHTML = marked.parse(text);
+        })
+        .catch(err => {
+            document.getElementById('content').innerHTML = "שגיאה בטעינת התוכן.";
+        });
+</script>
+
+</body>
+</html>
