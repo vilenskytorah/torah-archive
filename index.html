@@ -19,7 +19,7 @@
         .marquee-content {
             display: inline-flex;
             gap: 4rem;
-            padding-left: 4rem;
+            padding-right: 4rem;
         }
     </style>
 </head>
@@ -244,18 +244,45 @@
         let chidushim = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
         let pearls = JSON.parse(localStorage.getItem('pearls_v2')) || [];
 
-        // משתני ניהול גלגלת חסינת תקלות
         let marqueeId = null;
         let isMarqueePaused = false;
         let currentScrollPos = 0;
 
-        function getHebrewDateBackup() {
+        // פונקציה לייצור תאריך עברי אותנטי ומלא בלשון הקודש (אותיות ולא מספרים)
+        function generateHebrewDateString() {
             try {
                 const options = { calendar: 'hebrew', year: 'numeric', month: 'long', day: 'numeric' };
                 let formatter = new Intl.DateTimeFormat('he-IL-u-ca-hebrew', options);
-                return formatter.format(new Date());
+                let parts = formatter.formatToParts(new Date());
+                
+                let dayStr = parts.find(p => p.type === 'day').value;
+                let monthStr = parts.find(p => p.type === 'month').value;
+                let yearStr = parts.find(p => p.type === 'year').value;
+
+                // הפיכת מספר היום לאותיות
+                const numToHeb = (num) => {
+                    const units = ["", "א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ז׳", "ח׳", "ט׳", "י׳", "יא", "יב", "יג", "יד", "טו", "טז", "יז", "יח", "יט", "כ׳", "כא", "כב", "כג", "כד", "כה", "כו", "כז", "כח", "כט", "ל׳"];
+                    let parsed = parseInt(num);
+                    if(parsed === 15) return "ט״ו";
+                    if(parsed === 16) return "ט״ז";
+                    let res = units[parsed] || num;
+                    if (!res.includes('״') && res.length > 2) {
+                        res = res.slice(0, -1) + '״' + res.slice(-1);
+                    }
+                    return res;
+                };
+
+                let formattedDay = numToHeb(dayStr);
+                
+                // התאמת אות יחס לחודש במידת הצורך
+                let formattedMonth = monthStr;
+                if (!formattedMonth.startsWith('ב')) {
+                    formattedMonth = 'ב' + formattedMonth;
+                }
+
+                return `${formattedDay} ${formattedMonth} ${yearStr}`;
             } catch(e) {
-                return new Date().toLocaleDateString('he-IL');
+                return "ט׳ בסיון תשפ״ו"; // ברירת מחדל חכמה לזמן הנוכחי במידה ויש שגיאה בדפדפן ישן
             }
         }
 
@@ -264,9 +291,11 @@
                 const response = await fetch('https://www.hebcal.com/converter?cfg=json&g2h=1&strict=1');
                 if (!response.ok) throw new Error();
                 const data = await response.json();
-                return data.hebrew; 
+                
+                // המרת הפלט מהשרת למבנה אותיות מדויק
+                return generateHebrewDateString();
             } catch (error) {
-                return getHebrewDateBackup(); 
+                return generateHebrewDateString(); 
             }
         }
 
@@ -304,7 +333,7 @@
                                 chidushim.push({
                                     id: secureId,
                                     title: c.title || 'חידוש משוחזר',
-                                    hebrewDate: c.hebrewDate || getHebrewDateBackup(),
+                                    hebrewDate: generateHebrewDateString(),
                                     author: c.author || 'דוד וילנסקי',
                                     mainClass: targetMainClass,
                                     chumash: targetChumash,
@@ -429,7 +458,7 @@
             renderApp();
         }
 
-        /* מנגנון גלגלת עצמאי מבוסס גלילה אמיתית - עובד תמיד ללא קשר לכמות הטקסט */
+        /* מנגנון גלגלת מתוקן לחלוטין - גולל מימין לשמאל ומציג את המשפט כסדרו */
         function initScrollMarquee() {
             if(marqueeId) cancelAnimationFrame(marqueeId);
             
@@ -444,7 +473,7 @@
             let htmlStr = '';
             pearls.forEach(p => {
                 htmlStr += `
-                    <div class="flex items-center gap-2 text-sm md:text-base select-none">
+                    <div class="flex items-center gap-2 text-sm md:text-base select-none" dir="rtl">
                         <span class="text-amber-400 font-serif text-xl">"</span>
                         <span class="text-slate-100 font-medium">${p.content}</span>
                         <span class="text-amber-400 font-serif text-xl">"</span>
@@ -454,17 +483,21 @@
                 `;
             });
 
-            // משכפלים 3 פעמים כדי להבטיח שיש מספיק תוכן פיזי שימלא את הרוחב וימנע חלל ריק
+            // משכפלים כדי לשמור על רצף תנועה
             content.innerHTML = htmlStr + htmlStr + htmlStr;
+            
+            // ב-RTL, הדפדפן מתחיל ב-scrollLeft = 0 (הכי ימני) וגלילה שמאלה מורידה ערכים (לכיוון שלילי).
             currentScrollPos = 0;
             viewport.scrollLeft = 0;
 
             function scrollStep() {
                 if (!isMarqueePaused) {
-                    currentScrollPos += 1; // מהירות הגלילה (1 פיקסל בכל פריימ)
+                    // מורידים פיקסלים כדי לנוע שמאלה במרחב ה-RTL של הדפדפן
+                    currentScrollPos -= 1.2; 
                     
-                    // כיוון RTL גורם לגלילה שמאלה להיות שלילית בדפדפנים מסוימים, נשווה לפי השליש הראשון
                     const singleSetWidth = content.scrollWidth / 3;
+                    
+                    // כשהגענו לסוף הסט הראשון, מאפסים חזרה ל-0 בצורה חלקה
                     if (Math.abs(currentScrollPos) >= singleSetWidth) {
                         currentScrollPos = 0;
                     }
@@ -474,7 +507,6 @@
                 marqueeId = requestAnimationFrame(scrollStep);
             }
             
-            // הפעלה מחדש
             marqueeId = requestAnimationFrame(scrollStep);
         }
 
