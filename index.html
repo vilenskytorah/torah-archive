@@ -22,15 +22,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- תיבת חילוץ חירום -->
-    <div id="emergencyRecoverBox" class="bg-amber-500 text-slate-950 py-3 px-6 text-center font-bold text-sm shadow-md border-b-2 border-amber-600 animate-bounce flex justify-center items-center gap-3">
-        <span>📢 המערכת זיהתה פריטים מהגרסה הקודמת שדורשים התאמה למבנה החדש</span>
-        <button onclick="runDeepRecovery()" class="bg-slate-900 text-amber-400 px-4 py-1 rounded-lg hover:bg-slate-800 transition cursor-pointer shadow-md text-xs">
-            ♻️ סנכרן את דברי התורה למדורים החדשים
-        </button>
-    </div>
-
-    <!-- סרגל עליון -->
     <header class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white shadow-xl py-8 px-6 border-b-4 border-amber-500">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="text-center md:text-right">
@@ -43,29 +34,23 @@
         </div>
     </header>
 
-    <!-- אזור פניני החכמה - מבנה כרטיסיות משודרג לחלוטין! -->
     <div class="bg-gradient-to-b from-indigo-950 to-slate-900 text-white py-8 shadow-inner border-b-2 border-slate-950">
         <div class="max-w-4xl mx-auto px-6">
             <h2 class="text-sm font-bold text-amber-400 mb-4 tracking-widest uppercase text-center flex items-center justify-center gap-2 font-serif">
                 ✨ פניני חכמה ואמרות קצרות
             </h2>
             
-            <!-- מתחם הכרטיסייה עם חיצי דפדוף -->
             <div class="relative flex items-center justify-between gap-4 w-full" onmouseenter="pausePearlRotation()" onmouseleave="resumePearlRotation()">
                 
-                <!-- חץ ימין (קדימה) -->
                 <button onclick="prevPearl()" class="bg-slate-800/60 hover:bg-amber-500 hover:text-slate-950 text-white w-10 h-10 rounded-full flex items-center justify-center transition border border-slate-700 shadow-md shrink-0 font-bold text-lg cursor-pointer">
                     ➔
                 </button>
 
-                <!-- קופסת הכרטיס המרכזית -->
                 <div class="w-full bg-white text-slate-900 rounded-2xl p-6 shadow-2xl border-t-4 border-amber-500 min-h-[130px] flex items-center justify-center relative overflow-hidden">
                     <div id="pearlDisplayContainer" class="w-full text-center">
-                        <!-- פנינה דינמית תיכנס כאן -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- חץ שמאל (אחורה) -->
                 <button onclick="nextPearl()" class="bg-slate-800/60 hover:bg-amber-500 hover:text-slate-950 text-white w-10 h-10 rounded-full flex items-center justify-center transition border border-slate-700 shadow-md shrink-0 font-bold text-lg cursor-pointer">
                     ➔
                 </button>
@@ -74,10 +59,8 @@
         </div>
     </div>
 
-    <!-- מרכז האתר -->
     <main class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-4 gap-8 py-10 flex-grow w-full">
         
-        <!-- טופס מנהל -->
         <section id="adminFormSection" class="hidden lg:col-span-1">
             <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200 sticky top-6">
                 <h2 class="text-lg font-bold text-slate-900 mb-4 pb-2 border-b-2 border-amber-500">הוספת תוכן חדש למאגר</h2>
@@ -144,7 +127,6 @@
             </div>
         </section>
 
-        <!-- אזור התצוגה המפוצל -->
         <section id="displaySection" class="lg:col-span-4 space-y-10">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-3">
                 <span class="text-sm font-bold text-slate-700 shrink-0">🔍 חיפוש חופשי באוצר:</span>
@@ -181,7 +163,6 @@
         </section>
     </main>
 
-    <!-- מודאל א': עריכת סיווג לחידושים -->
     <div id="editModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex justify-center items-center p-4 z-50">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
             <div class="bg-slate-900 text-white p-4 font-bold text-md border-b-2 border-amber-500 flex justify-between items-center">
@@ -222,7 +203,6 @@
         </div>
     </div>
 
-    <!-- מודאל ב': עריכת תוכן פנינה מהגלגלת -->
     <div id="editPearlModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex justify-center items-center p-4 z-50">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
             <div class="bg-indigo-900 text-white p-4 font-bold text-md border-b-2 border-amber-500 flex justify-between items-center">
@@ -265,15 +245,18 @@
         let pearlIntervalId = null;
         let isPearlPaused = false;
 
+        // פונקציית המרה לגימטריה עברית
         function convertNumToHebrewLetters(num) {
             let n = parseInt(num);
             if (isNaN(n) || n <= 0) return "";
+            
             const daysMapping = {
                 1: "א׳", 2: "ב׳", 3: "ג׳", 4: "ד׳", 5: "ה׳", 6: "ו׳", 7: "ז׳", 8: "ח׳", 9: "ט׳", 10: "י׳",
-                11: "י״א", 12: "י״ב", 13: "י״ג", 14: "י״ו", 15: "ט״ו", 16: "ט״ז", 17: "י״ז", 18: "י״ח", 19: "י״ט", 20: "כ׳",
+                11: "י״א", 12: "י״ב", 13: "י״ג", 14: "י״ד", 15: "ט״ו", 16: "ט״ז", 17: "י״ז", 18: "י״ח", 19: "י״ט", 20: "כ׳",
                 21: "כ״א", 22: "כ״ב", 23: "כ״ג", 24: "כ״ד", 25: "כ״ה", 26: "כ״ו", 27: "כ״ז", 28: "כ״ח", 29: "כ״ט", 30: "ל׳"
             };
             if (daysMapping[n]) return daysMapping[n];
+
             let parts = [];
             if (n >= 5000) n -= 5000;
             const hebrewMatrix = [
@@ -297,63 +280,31 @@
             return word.slice(0, -1) + "״" + word.slice(-1);
         }
 
+        // ייצור מחרוזת תאריך עברי
         function generateHebrewDateString() {
             try {
                 const options = { calendar: 'hebrew', year: 'numeric', month: 'long', day: 'numeric' };
                 let formatter = new Intl.DateTimeFormat('he-IL-u-ca-hebrew', options);
                 let parts = formatter.formatToParts(new Date());
+                
                 let dayVal = parts.find(p => p.type === 'day').value;
                 let monthStr = parts.find(p => p.type === 'month').value;
                 let yearVal = parts.find(p => p.type === 'year').value;
-                return `${convertNumToHebrewLetters(dayVal)} ${monthStr.startsWith('ב') ? monthStr : 'ב' + monthStr} ${convertNumToHebrewLetters(yearVal)}`;
+
+                monthStr = monthStr.replace(/[0-9]/g, '').trim();
+
+                let dayHebrew = convertNumToHebrewLetters(dayVal);
+                let yearHebrew = convertNumToHebrewLetters(yearVal);
+                let formattedMonth = monthStr.startsWith('ב') ? monthStr : 'ב' + monthStr;
+
+                return `${dayHebrew} ${formattedMonth} ${yearHebrew}`;
             } catch(e) {
-                return "ט׳ בסיון תשפ״ו"; 
+                return "ט׳ בסיון תשפ״ו";
             }
-        }
-
-        function checkEmergencyStatus() {
-            let foundOldKeys = false;
-            for (let i = 0; i < localStorage.length; i++) {
-                if (['chidushim', 'pearls', 'torahData', 'savedData'].includes(localStorage.key(i))) {
-                    foundOldKeys = true; break;
-                }
-            }
-            if (!foundOldKeys) document.getElementById('emergencyRecoverBox').style.display = 'none';
-        }
-
-        function runDeepRecovery() {
-            ['chidushim', 'torahData', 'savedData'].forEach(key => {
-                let oldData = localStorage.getItem(key);
-                if (oldData) {
-                    try {
-                        let parsed = JSON.parse(oldData);
-                        if (!Array.isArray(parsed)) parsed = [parsed];
-                        parsed.forEach(c => {
-                            if (chidushim.findIndex(ex => ex.content === (c.content || c.text)) === -1) {
-                                chidushim.push({
-                                    id: "id_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
-                                    title: c.title || 'חידוש משוחזר',
-                                    hebrewDate: generateHebrewDateString(),
-                                    author: c.author || 'דוד וילנסקי',
-                                    mainClass: c.mainClass || 'תורה',
-                                    chumash: c.chumash || '',
-                                    subClass: c.subClass || '',
-                                    content: c.content || c.text || '',
-                                    timestamp: Date.now()
-                                });
-                            }
-                        });
-                    } catch(e) {}
-                }
-            });
-            localStorage.setItem('chidushim_v2', JSON.stringify(chidushim));
-            document.getElementById('emergencyRecoverBox').style.display = 'none';
-            renderApp();
         }
 
         document.getElementById('torahForm').addEventListener('submit', handleFormSubmit);
         fillSelect(document.getElementById('subClass'), PARASHOT);
-        checkEmergencyStatus();
         renderApp();
         startPearlRotation();
 
@@ -453,7 +404,6 @@
             renderApp();
         }
 
-        // ניהול ורוטציה של כרטיסיות הפנינים
         function startPearlRotation() {
             if (pearlIntervalId) clearInterval(pearlIntervalId);
             renderCurrentPearl();
@@ -507,7 +457,6 @@
             renderCurrentPearl();
         }
 
-        // שינוי חץ ימין שילך אחורה במערך (לפי כיוון זרימת ה-RTL)
         function prevPearl() {
             if (pearls.length <= 1) return;
             currentPearlIndex = (currentPearlIndex - 1 + pearls.length) % pearls.length;
