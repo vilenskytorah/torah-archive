@@ -7,6 +7,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        
+        /* אנימציית גלגלת רצה חלקה מימין לשמאל */
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .marquee-track {
+            display: inline-flex;
+            white-space: nowrap;
+            animation: marquee 25s linear infinite;
+        }
+        /* עצירת הגלגלת בעת מעבר עכבר לקריאה נוחה */
+        .marquee-track:hover {
+            animation-play-state: paused;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
@@ -32,13 +47,15 @@
         </div>
     </header>
 
-    <!-- גלגלת פניני חכמה ואמרות קצרות -->
-    <div class="bg-indigo-900 text-white py-4 shadow-inner border-b border-indigo-950">
+    <!-- גלגלת פנינים חכמה - זרימה רציפה ללא קטיעות -->
+    <div class="bg-indigo-900 text-white py-3 shadow-inner border-b border-indigo-950">
         <div class="max-w-7xl mx-auto px-6">
-            <h2 class="text-xs font-bold text-amber-400 mb-1 tracking-widest uppercase">✨ פניני חכמה ואמרות קצרות (רצות אוטומטית)</h2>
-            <div class="relative overflow-hidden w-full h-12 flex items-center bg-indigo-950/50 rounded-xl px-4 border border-indigo-800">
-                <div id="pearlsContainer" class="w-full text-center text-md font-medium transition-all duration-500 ease-in-out">
-                    <span class="text-slate-400 text-sm italic">עדיין לא הוכנסו פנינים למאגר...</span>
+            <h2 class="text-xs font-bold text-amber-400 mb-1 tracking-widest uppercase">✨ פניני חכמה ואמרות קצרות (נעצר במעבר עכבר)</h2>
+            <div class="relative overflow-hidden w-full bg-indigo-950/50 rounded-xl py-2.5 px-4 border border-indigo-800 flex items-center">
+                <div class="w-full overflow-hidden flex">
+                    <div id="pearlsMarqueeTrack" class="marquee-track gap-16 items-center text-md font-medium">
+                        <!-- הפנינים יישתלו כאן דינמית בריצה רציפה -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -302,27 +319,25 @@
         }
 
         let isAdmin = false;
-        let pearlIndex = 0;
-        let pearlInterval;
 
         document.getElementById('torahForm').addEventListener('submit', handleFormSubmit);
         
         fillSelect(document.getElementById('subClass'), PARASHOT);
         checkEmergencyStatus();
         renderApp();
-        startPearlsLoop();
+        renderMarqueePearls();
 
         function toggleFormFields() {
             const type = document.getElementById('contentType').value;
             if (type === 'פנינה') {
                 document.getElementById('titleField').style.display = 'none';
-                document.getElementById('title').removeAttribute('required'); // ביטול חובת כותרת בפנינה
+                document.getElementById('title').removeAttribute('required');
                 document.getElementById('classificationFields').style.display = 'none';
                 document.getElementById('contentLabel').innerHTML = "✍️ תוכן הפנינה הקצרה (יופיע בגלגלת למעלה)";
                 document.getElementById('content').placeholder = "הקלד פנינה קצרה, משפט השראה או אמרה תמציתית...";
             } else {
                 document.getElementById('titleField').style.display = 'block';
-                document.getElementById('title').setAttribute('required', 'true'); // החזרת חובת כותרת לחידוש
+                document.getElementById('title').setAttribute('required', 'true');
                 document.getElementById('classificationFields').style.display = 'block';
                 document.getElementById('contentLabel').innerHTML = "✍️ תוכן החידוש";
                 document.getElementById('content').placeholder = "הקלד כאן את תוכן המאמר או החידוש בהרחבה...";
@@ -384,7 +399,7 @@
                 localStorage.setItem('pearls_v2', JSON.stringify(pearls));
                 
                 document.getElementById('content').value = '';
-                startPearlsLoop();
+                renderMarqueePearls();
                 alert('הפנינה נשמרה בהצלחה ותרוץ בגלגלת העליונה!');
             } else {
                 const mainClass = document.getElementById('mainClass').value;
@@ -410,30 +425,29 @@
             renderApp();
         }
 
-        function startPearlsLoop() {
-            clearInterval(pearlInterval);
-            const container = document.getElementById('pearlsContainer');
+        /* בניית הגלגלת הרצה מחדש בצורה יציבה, רציפה וללא הגבלת גובה */
+        function renderMarqueePearls() {
+            const track = document.getElementById('pearlsMarqueeTrack');
             if (pearls.length === 0) {
-                container.innerHTML = `<span class="text-slate-400 text-sm italic">עדיין לא הוכנסו פנינים למאגר...</span>`;
+                track.innerHTML = `<span class="text-slate-400 text-sm italic py-1">עדיין לא הוכנסו פנינים למאגר...</span>`;
                 return;
             }
-            pearlIndex = 0;
-            const displayPearl = () => {
-                const p = pearls[pearlIndex];
-                if(!p) return;
-                container.style.opacity = 0;
-                setTimeout(() => {
-                    container.innerHTML = `
-                        <span class="text-amber-400 font-serif">"</span><span class="text-slate-100">${p.content}</span><span class="text-amber-400 font-serif">"</span>
-                        <span class="text-xs text-indigo-300 mr-2">(${p.author} - ${p.hebrewDate})</span>
-                        ${isAdmin ? `<button onclick="deletePearl('${p.id}')" class="text-red-400 hover:text-red-300 text-xs mr-3 font-sans cursor-pointer font-bold">[מחק פנינה]</button>` : ''}
-                    `;
-                    container.style.opacity = 1;
-                }, 300);
-                pearlIndex = (pearlIndex + 1) % pearls.length;
-            };
-            displayPearl();
-            if(pearls.length > 1) pearlInterval = setInterval(displayPearl, 5000);
+
+            let htmlContent = '';
+            pearls.forEach(p => {
+                htmlContent += `
+                    <div class="flex items-center gap-2 font-sans text-sm md:text-base">
+                        <span class="text-amber-400 font-serif text-xl">"</span>
+                        <span class="text-slate-100 font-medium">${p.content}</span>
+                        <span class="text-amber-400 font-serif text-xl">"</span>
+                        <span class="text-xs text-indigo-300 bg-indigo-950 px-2 py-0.5 rounded-sm shrink-0">(${p.author} - ${p.hebrewDate})</span>
+                        ${isAdmin ? `<button onclick="deletePearl('${p.id}')" class="text-red-400 hover:text-red-300 text-xs mr-1 font-bold cursor-pointer font-sans shrink-0">[מחק]</button>` : ''}
+                    </div>
+                `;
+            });
+
+            // שכפול קל של התוכן כדי לייצר רצף זרימה מעגלי יפה בדפדפן
+            track.innerHTML = htmlContent + (pearls.length > 1 ? htmlContent : '');
         }
 
         function renderApp() {
@@ -571,7 +585,7 @@
                 document.getElementById('adminFormSection').classList.add('hidden');
                 document.getElementById('displaySection').classList.replace('lg:col-span-3', 'lg:col-span-4');
             }
-            startPearlsLoop();
+            renderMarqueePearls();
             renderApp();
         }
 
@@ -587,7 +601,7 @@
             if(confirm('למחוק את הפנינה?')) {
                 pearls = pearls.filter(p => String(p.id) !== String(id));
                 localStorage.setItem('pearls_v2', JSON.stringify(pearls));
-                startPearlsLoop();
+                renderMarqueePearls();
                 renderApp();
             }
         }
