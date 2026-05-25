@@ -1,12 +1,12 @@
-title: אוצר החידושים
-description: חידושי תורה של משפחת דוד וילנסקי - מורשת לדורות
-baseurl: ""  # אם הריפו הוא vilenskytorah.github.io אז השאר ריק
+title: אוצר תורה - וילנסקי
+description: חידושי תורה, פנינים וורטים - מורשת משפחת וילנסקי לדורות
+baseurl: "" 
 url: "https://vilenskytorah.github.io"
 lang: he
 rtl: true
 
-github_username: vilenskytorah
-repository: torah-archive
+# GitHub
+repository: vilenskytorah/torah-archive
 
 # Collections
 collections:
@@ -17,10 +17,24 @@ collections:
     output: true
     permalink: /pnina/:title/
 
+# Defaults
 defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
   - scope:
       path: ""
       type: "chidushim"
     values:
       layout: chidush
-      author: "דוד וילנסקי"
+  - scope:
+      path: ""
+      type: "pninim"
+    values:
+      layout: pnina
+
+# Sass
+sass:
+  sass_dir: _sass
+  style: compressed
