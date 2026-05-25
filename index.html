@@ -1,26 +1,46 @@
----
-title: אוצר תורה
-layout: default
----
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>אוצר תורה</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;700&family=Assistant:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Assistant', sans-serif; }
+    h1, h2 { font-family: 'Frank Ruhl Libre', serif; }
+  </style>
+</head>
+<body class="bg-stone-50">
 
-<div class="max-w-7xl mx-auto px-6 py-12 text-center">
+  <nav class="bg-amber-900 text-white py-4">
+    <div class="max-w-6xl mx-auto px-6 flex justify-between">
+      <h1 class="text-2xl font-bold">אוצר תורה</h1>
+      <div class="space-x-6">
+        <a href="#" class="hover:text-amber-200">בית</a>
+        <a href="#" class="hover:text-amber-200">פנינים</a>
+        <a href="#" class="hover:text-amber-200">חידושים</a>
+      </div>
+    </div>
+  </nav>
 
-  <h1 class="text-5xl font-bold text-amber-900 mb-4">אוצר תורה</h1>
-  <p class="text-xl text-amber-800 mb-12">חידושי תורה • פנינים • מורשת משפחת וילנסקי</p>
+  <div class="max-w-4xl mx-auto px-6 py-16 text-center">
+    <h1 class="text-6xl font-bold text-amber-900 mb-6">אוצר תורה</h1>
+    <p class="text-2xl text-amber-800 mb-16">חידושי תורה • פנינים • מורשת משפחת וילנסקי</p>
 
-  <div class="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-    
-    <a href="https://github.com/vilenskytorah/torah-archive/new/main/_pninim" 
-       class="bg-amber-700 hover:bg-amber-800 text-white font-medium px-10 py-5 rounded-3xl text-xl inline-flex items-center gap-3">
-      ✨ הוסף פנינה חדשה
-    </a>
-    
-    <a href="https://github.com/vilenskytorah/torah-archive/new/main/_chidushim" 
-       class="bg-amber-800 hover:bg-amber-900 text-white font-medium px-10 py-5 rounded-3xl text-xl inline-flex items-center gap-3">
-      ✍️ הוסף חידוש חדש
-    </a>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-lg mx-auto">
+      <a href="https://github.com/vilenskytorah/torah-archive/new/main/_pninim" 
+         class="bg-amber-700 hover:bg-amber-800 text-white py-8 rounded-3xl text-2xl font-medium shadow-lg">
+        ✨ הוסף פנינה חדשה
+      </a>
+      <a href="https://github.com/vilenskytorah/torah-archive/new/main/_chidushim" 
+         class="bg-amber-800 hover:bg-amber-900 text-white py-8 rounded-3xl text-2xl font-medium shadow-lg">
+        ✍️ הוסף חידוש חדש
+      </a>
+    </div>
+
+    <p class="mt-12 text-gray-600">פשוט לחץ על הכפתור → כתוב → Commit</p>
   </div>
 
-  <p class="text-gray-600">לחץ על הכפתור → כתוב כותרת + תוכן → Commit</p>
-
-</div>
+</body>
+</html>
