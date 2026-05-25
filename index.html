@@ -8,96 +8,74 @@
 </head>
 <body class="bg-slate-50 font-sans">
 
-    <header class="bg-indigo-950 text-white p-8 text-center border-b-4 border-amber-500">
-        <h1 class="text-4xl font-bold">אוצר החידושים</h1>
+    <header class="bg-indigo-950 text-white p-6 text-center shadow-lg border-b-4 border-amber-500">
+        <h1 class="text-3xl font-bold">אוצר החידושים</h1>
     </header>
 
-    <section class="bg-slate-900 text-white p-6 text-center">
-        <h2 class="text-amber-400 font-bold mb-4">✨ פניני חכמה</h2>
-        <div id="pearlDisplay" class="p-6 bg-slate-800 rounded-xl min-h-[120px] flex flex-col items-center justify-center italic"></div>
-        <div class="mt-4 flex justify-center gap-2">
-            <button onclick="changePearl(-1)" class="bg-slate-700 hover:bg-slate-600 px-4 py-1 rounded">הקודם</button>
-            <button onclick="changePearl(1)" class="bg-slate-700 hover:bg-slate-600 px-4 py-1 rounded">הבא</button>
-        </div>
-    </section>
-
-    <main class="max-w-4xl mx-auto p-6">
-        <div id="sections" class="space-y-12">
-            <section><h2 class="text-2xl font-bold text-amber-800 border-b-2 border-amber-500 pb-2">📚 חומש ופרשה</h2><div id="section-tora" class="grid gap-4 mt-4"></div></section>
-            <section><h2 class="text-2xl font-bold text-blue-800 border-b-2 border-blue-500 pb-2">💡 תלמוד בבלי</h2><div id="section-bavli" class="grid gap-4 mt-4"></div></section>
-            <section><h2 class="text-2xl font-bold text-teal-800 border-b-2 border-teal-500 pb-2">🏛️ תלמוד ירושלמי</h2><div id="section-yerushalmi" class="grid gap-4 mt-4"></div></section>
-            <section><h2 class="text-2xl font-bold text-purple-800 border-b-2 border-purple-500 pb-2">🍷 חגים ומועדים</h2><div id="section-moadim" class="grid gap-4 mt-4"></div></section>
+    <main class="max-w-4xl mx-auto p-4">
+        <div class="bg-white p-4 rounded-xl shadow mb-6 flex gap-2 overflow-x-auto">
+            <select id="filterClass" onchange="filterData()" class="p-2 border rounded">
+                <option value="all">כל המקורות</option>
+                <option value="חומש">חומש</option>
+                <option value="בבלי">תלמוד בבלי</option>
+                <option value="ירושלמי">תלמוד ירושלמי</option>
+                <option value="מועדים">חגים ומועדים</option>
+            </select>
         </div>
 
-        <div class="mt-20 border-t pt-8 text-center">
-            <button onclick="adminLogin()" class="text-slate-400 hover:text-slate-800 text-sm">כניסת מנהל</button>
-            <div id="adminPanel" class="hidden mt-6 bg-white p-8 rounded-2xl shadow-xl border border-indigo-100 text-right">
-                <h3 class="text-xl font-bold mb-6 text-indigo-900">ניהול תוכן</h3>
-                <div class="space-y-4">
-                    <input type="text" id="iTitle" placeholder="כותרת החידוש" class="w-full p-3 border rounded-lg">
-                    <textarea id="iContent" placeholder="תוכן התורה..." class="w-full p-3 border rounded-lg h-32"></textarea>
-                    <select id="iType" class="w-full p-3 border rounded-lg">
-                        <option value="תורה">חומש ופרשה</option>
-                        <option value="בבלי">תלמוד בבלי</option>
-                        <option value="ירושלמי">תלמוד ירושלמי</option>
-                        <option value="מועדים">חגים ומועדים</option>
-                    </select>
-                    <button onclick="saveData()" class="w-full bg-indigo-900 text-white py-3 rounded-lg font-bold">שמור באוצר</button>
-                </div>
+        <div id="contentDisplay" class="space-y-4"></div>
+
+        <div class="mt-12 text-center border-t pt-6">
+            <button onclick="adminLogin()" class="text-slate-400 text-sm underline">כניסת מנהל</button>
+            <div id="adminPanel" class="hidden mt-4 bg-white p-6 rounded-xl shadow border">
+                <h3 class="font-bold mb-4">הוספת חידוש</h3>
+                <select id="iType" class="w-full p-2 border mb-2">
+                    <optgroup label="חומש">
+                        <option value="בראשית">בראשית</option><option value="שמות">שמות</option><option value="ויקרא">ויקרא</option>
+                    </optgroup>
+                    <optgroup label="בבלי">
+                        <option value="ברכות">ברכות</option><option value="שבת">שבת</option>
+                    </optgroup>
+                </select>
+                <input type="text" id="iTitle" placeholder="כותרת" class="w-full p-2 border mb-2">
+                <textarea id="iContent" placeholder="תוכן" class="w-full p-2 border mb-2 h-24"></textarea>
+                <button onclick="saveData()" class="bg-indigo-900 text-white w-full py-2 rounded">שמור</button>
             </div>
         </div>
     </main>
 
     <script>
-        let currentPearl = 0;
-        const today = "כ״ח באייר תשפ״ו";
-
         function adminLogin() {
-            const pass = prompt("סיסמת מנהל:");
-            if (pass === "1234") document.getElementById('adminPanel').classList.remove('hidden');
-            else alert("סיסמה שגויה");
+            if(prompt("סיסמה:") === "1234") document.getElementById('adminPanel').classList.remove('hidden');
         }
 
         function saveData() {
-            let data = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
-            data.push({
+            let list = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
+            list.push({
                 title: document.getElementById('iTitle').value,
                 content: document.getElementById('iContent').value,
-                mainClass: document.getElementById('iType').value,
-                hebrewDate: today
+                subClass: document.getElementById('iType').value,
+                hebrewDate: "כ״ח באייר תשפ״ו"
             });
-            localStorage.setItem('chidushim_v2', JSON.stringify(data));
+            localStorage.setItem('chidushim_v2', JSON.stringify(list));
             location.reload();
         }
 
-        function init() {
-            const chidushim = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
-            const pearls = JSON.parse(localStorage.getItem('pearls_v2')) || [{content: "ברוכים הבאים לאוצר החידושים", hebrewDate: today}];
+        function filterData() {
+            const filter = document.getElementById('filterClass').value;
+            const data = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
+            const display = document.getElementById('contentDisplay');
+            display.innerHTML = '';
             
-            // רינדור חידושים
-            const containers = { 'תורה': 'section-tora', 'בבלי': 'section-bavli', 'ירושלמי': 'section-yerushalmi', 'מועדים': 'section-moadim' };
-            chidushim.forEach(c => {
-                const el = document.createElement('div');
-                el.className = "bg-white p-5 rounded-2xl shadow-sm border border-slate-200";
-                el.innerHTML = `<h3 class="font-bold text-lg text-indigo-900">${c.title}</h3><p class="text-slate-600 mt-2">${c.content}</p><div class="mt-4 text-[10px] font-bold text-amber-700">${c.hebrewDate}</div>`;
-                document.getElementById(containers[c.mainClass] || 'section-tora').appendChild(el);
+            data.filter(item => filter === 'all' || item.mainClass === filter).forEach(item => {
+                display.innerHTML += `
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="font-bold text-indigo-800">${item.subClass} - ${item.title}</h3>
+                        <p class="text-sm mt-1">${item.content}</p>
+                    </div>`;
             });
-
-            // רינדור פנינים
-            window.pearls = pearls;
-            renderPearl();
         }
-
-        function renderPearl() {
-            document.getElementById('pearlDisplay').innerHTML = `<p class="text-lg">"${window.pearls[currentPearl].content}"</p><p class="text-xs mt-3 opacity-70">${window.pearls[currentPearl].hebrewDate}</p>`;
-        }
-
-        function changePearl(d) {
-            currentPearl = (currentPearl + d + window.pearls.length) % window.pearls.length;
-            renderPearl();
-        }
-
-        init();
+        filterData();
     </script>
 </body>
 </html>
