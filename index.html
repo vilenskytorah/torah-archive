@@ -5,41 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>אוצר החידושים</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .pearl-card { display: none; }
-        .pearl-card.active { display: block; }
-    </style>
 </head>
-<body class="bg-slate-50">
-    <header class="bg-indigo-950 text-white p-6 text-center border-b-4 border-amber-500">
-        <h1 class="text-3xl font-bold">אוצר החידושים</h1>
+<body class="bg-slate-100 min-h-screen">
+
+    <header class="bg-indigo-950 text-white p-8 text-center border-b-4 border-amber-500">
+        <h1 class="text-4xl font-bold">אוצר החידושים</h1>
     </header>
 
     <section class="bg-slate-900 text-white p-6 text-center">
         <h2 class="text-amber-400 font-bold mb-4">✨ פניני חכמה</h2>
-        <div id="pearlContainer" class="min-h-[100px]"></div>
-        <div class="mt-4 flex justify-center gap-2">
-            <button onclick="changePearl(-1)" class="bg-slate-700 px-4 py-1 rounded">הקודם</button>
-            <button onclick="changePearl(1)" class="bg-slate-700 px-4 py-1 rounded">הבא</button>
+        <div id="pearlDisplayContainer" class="p-4 bg-slate-800 rounded-lg min-h-[100px] flex items-center justify-center"></div>
+        <div class="mt-4 space-x-2 space-x-reverse">
+            <button onclick="prevPearl()" class="bg-slate-600 px-4 py-1 rounded">הקודם</button>
+            <button onclick="nextPearl()" class="bg-slate-600 px-4 py-1 rounded">הבא</button>
         </div>
     </section>
 
     <main class="max-w-4xl mx-auto p-6">
-        <div id="sections">
-            <h2 class="text-xl font-bold text-amber-800 border-b-2 border-amber-500 pb-2 mb-4">📚 דבר תורה</h2>
-            <div id="section-tora" class="grid gap-4 mb-8"></div>
-            <h2 class="text-xl font-bold text-blue-800 border-b-2 border-blue-500 pb-2 mb-4">💡 תלמוד בבלי</h2>
-            <div id="section-bavli" class="grid gap-4 mb-8"></div>
-            <h2 class="text-xl font-bold text-teal-800 border-b-2 border-teal-500 pb-2 mb-4">🏛️ תלמוד ירושלמי</h2>
-            <div id="section-yerushalmi" class="grid gap-4 mb-8"></div>
-            <h2 class="text-xl font-bold text-purple-800 border-b-2 border-purple-500 pb-2 mb-4">🍷 חגים ומועדים</h2>
-            <div id="section-moadim" class="grid gap-4 mb-8"></div>
+        <div id="sections" class="space-y-10">
+            <section><h2 class="text-2xl font-bold text-amber-800 border-b-2 border-amber-500 pb-2">📚 חומש ופרשה</h2><div id="section-tora" class="grid gap-4 mt-4"></div></section>
+            <section><h2 class="text-2xl font-bold text-blue-800 border-b-2 border-blue-500 pb-2">💡 תלמוד בבלי</h2><div id="section-bavli" class="grid gap-4 mt-4"></div></section>
+            <section><h2 class="text-2xl font-bold text-teal-800 border-b-2 border-teal-500 pb-2">🏛️ תלמוד ירושלמי</h2><div id="section-yerushalmi" class="grid gap-4 mt-4"></div></section>
+            <section><h2 class="text-2xl font-bold text-purple-800 border-b-2 border-purple-500 pb-2">🍷 חגים ומועדים</h2><div id="section-moadim" class="grid gap-4 mt-4"></div></section>
         </div>
 
-        <div id="adminArea" class="mt-12 p-6 border-t border-slate-300">
-            <button onclick="toggleAdmin()" class="bg-slate-800 text-white px-4 py-2 rounded">כניסת מנהל</button>
-            <div id="adminForm" class="hidden mt-4 bg-white p-4 shadow rounded">
-                <p>כאן יופיע טופס העריכה כשתזין סיסמה.</p>
+        <div class="mt-12 text-center">
+            <button id="adminBtn" onclick="toggleAdmin()" class="bg-slate-800 text-white px-6 py-2 rounded font-bold">כניסת מנהל</button>
+            <div id="adminPanel" class="hidden mt-6 bg-white p-6 rounded shadow border">
+                <input type="text" id="title" placeholder="כותרת" class="w-full mb-2 p-2 border"><br>
+                <textarea id="content" placeholder="תוכן" class="w-full mb-2 p-2 border"></textarea><br>
+                <button onclick="addContent()" class="bg-green-600 text-white px-4 py-2 rounded">שמור</button>
             </div>
         </div>
     </main>
@@ -48,61 +43,38 @@
         let currentPearl = 0;
         const today = "כ״ח באייר תשפ״ו";
 
-        function init() {
+        function loadData() {
             let chidushim = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
             let pearls = JSON.parse(localStorage.getItem('pearls_v2')) || [];
-
-            // עדכון תאריך לכל מה שקיים
-            chidushim.forEach(c => c.hebrewDate = today);
-            pearls.forEach(p => p.hebrewDate = today);
             
-            localStorage.setItem('chidushim_v2', JSON.stringify(chidushim));
-            localStorage.setItem('pearls_v2', JSON.stringify(pearls));
-
-            // רינדור
-            render(chidushim, pearls);
-        }
-
-        function render(chidushim, pearls) {
-            // רינדור פנינים
-            const pCont = document.getElementById('pearlContainer');
-            pCont.innerHTML = pearls.map((p, i) => `
-                <div class="pearl-card ${i === 0 ? 'active' : ''}">
-                    <p class="text-lg">"${p.content}"</p>
-                    <p class="text-xs text-slate-400 mt-2">${p.hebrewDate}</p>
-                </div>
-            `).join('');
-
             // רינדור חידושים
-            const sections = {
-                'תורה': document.getElementById('section-tora'),
-                'בבלי': document.getElementById('section-bavli'),
-                'ירושלמי': document.getElementById('section-yerushalmi'),
-                'מועדים': document.getElementById('section-moadim')
-            };
-
+            const sections = { 'תורה': 'section-tora', 'בבלי': 'section-bavli', 'ירושלמי': 'section-yerushalmi', 'מועדים': 'section-moadim' };
             chidushim.forEach(c => {
-                const target = sections[c.mainClass] || sections['תורה'];
-                target.innerHTML += `
-                    <div class="bg-white p-4 rounded shadow">
-                        <h3 class="font-bold">${c.title}</h3>
-                        <p class="text-sm">${c.content}</p>
-                        <p class="text-[10px] text-amber-600 mt-2 font-bold">${c.hebrewDate}</p>
-                    </div>
-                `;
+                document.getElementById(sections[c.mainClass] || 'section-tora').innerHTML += `
+                    <div class="bg-white p-4 rounded shadow border">
+                        <h3 class="font-bold text-lg">${c.title}</h3>
+                        <p>${c.content}</p>
+                        <p class="text-xs text-amber-700 font-bold mt-2">${c.hebrewDate || today}</p>
+                    </div>`;
             });
+
+            // רינדור פנינים
+            window.pearls = pearls;
+            renderPearl();
         }
 
-        function changePearl(dir) {
-            const cards = document.querySelectorAll('.pearl-card');
-            cards[currentPearl].classList.remove('active');
-            currentPearl = (currentPearl + dir + cards.length) % cards.length;
-            cards[currentPearl].classList.add('active');
+        function renderPearl() {
+            const container = document.getElementById('pearlDisplayContainer');
+            if(window.pearls.length > 0) {
+                container.innerHTML = `<div><p class="text-lg">"${window.pearls[currentPearl].content}"</p><p class="text-xs mt-2">${window.pearls[currentPearl].hebrewDate || today}</p></div>`;
+            }
         }
 
-        function toggleAdmin() { document.getElementById('adminForm').classList.toggle('hidden'); }
+        function nextPearl() { if(window.pearls.length > 0) { currentPearl = (currentPearl + 1) % window.pearls.length; renderPearl(); } }
+        function prevPearl() { if(window.pearls.length > 0) { currentPearl = (currentPearl - 1 + window.pearls.length) % window.pearls.length; renderPearl(); } }
+        function toggleAdmin() { document.getElementById('adminPanel').classList.toggle('hidden'); }
         
-        init();
+        loadData();
     </script>
 </body>
 </html>
