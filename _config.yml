@@ -1,12 +1,4 @@
 title: אוצר תורה
-description: חידושי תורה • פנינים • מורשת משפחת וילנסקי
+description: חידושי תורה ופנינים - משפחת וילנסקי
 baseurl: "/torah-archive"
 url: "https://vilenskytorah.github.io"
-
-collections:
-  pninim:
-    output: true
-    permalink: /pnina/:title/
-  chidushim:
-    output: true
-    permalink: /chidush/:title/
