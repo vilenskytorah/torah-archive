@@ -6,7 +6,7 @@
     <title>אוצר החידושים</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 min-h-screen">
+<body class="bg-slate-50">
 
     <header class="bg-indigo-950 text-white p-8 text-center border-b-4 border-amber-500">
         <h1 class="text-4xl font-bold">אוצר החידושים</h1>
@@ -14,27 +14,32 @@
 
     <section class="bg-slate-900 text-white p-6 text-center">
         <h2 class="text-amber-400 font-bold mb-4">✨ פניני חכמה</h2>
-        <div id="pearlDisplayContainer" class="p-4 bg-slate-800 rounded-lg min-h-[100px] flex items-center justify-center"></div>
+        <div id="pearlDisplayContainer" class="p-4 bg-slate-800 rounded-lg min-h-[100px] flex items-center justify-center italic"></div>
         <div class="mt-4 space-x-2 space-x-reverse">
-            <button onclick="prevPearl()" class="bg-slate-600 px-4 py-1 rounded">הקודם</button>
-            <button onclick="nextPearl()" class="bg-slate-600 px-4 py-1 rounded">הבא</button>
+            <button onclick="changePearl(-1)" class="bg-slate-600 px-4 py-1 rounded">הקודם</button>
+            <button onclick="changePearl(1)" class="bg-slate-600 px-4 py-1 rounded">הבא</button>
         </div>
     </section>
 
-    <main class="max-w-4xl mx-auto p-6">
-        <div id="sections" class="space-y-10">
-            <section><h2 class="text-2xl font-bold text-amber-800 border-b-2 border-amber-500 pb-2">📚 חומש ופרשה</h2><div id="section-tora" class="grid gap-4 mt-4"></div></section>
-            <section><h2 class="text-2xl font-bold text-blue-800 border-b-2 border-blue-500 pb-2">💡 תלמוד בבלי</h2><div id="section-bavli" class="grid gap-4 mt-4"></div></section>
-            <section><h2 class="text-2xl font-bold text-teal-800 border-b-2 border-teal-500 pb-2">🏛️ תלמוד ירושלמי</h2><div id="section-yerushalmi" class="grid gap-4 mt-4"></div></section>
-            <section><h2 class="text-2xl font-bold text-purple-800 border-b-2 border-purple-500 pb-2">🍷 חגים ומועדים</h2><div id="section-moadim" class="grid gap-4 mt-4"></div></section>
-        </div>
+    <main class="max-w-4xl mx-auto p-6 space-y-10">
+        <section><h2 class="text-2xl font-bold border-b-2 border-amber-500 pb-2">📚 חומש ופרשה</h2><div id="section-tora" class="grid gap-4 mt-4"></div></section>
+        <section><h2 class="text-2xl font-bold border-b-2 border-blue-500 pb-2">💡 תלמוד בבלי</h2><div id="section-bavli" class="grid gap-4 mt-4"></div></section>
+        <section><h2 class="text-2xl font-bold border-b-2 border-teal-500 pb-2">🏛️ תלמוד ירושלמי</h2><div id="section-yerushalmi" class="grid gap-4 mt-4"></div></section>
+        <section><h2 class="text-2xl font-bold border-b-2 border-purple-500 pb-2">🍷 חגים ומועדים</h2><div id="section-moadim" class="grid gap-4 mt-4"></div></section>
 
-        <div class="mt-12 text-center">
-            <button id="adminBtn" onclick="toggleAdmin()" class="bg-slate-800 text-white px-6 py-2 rounded font-bold">כניסת מנהל</button>
-            <div id="adminPanel" class="hidden mt-6 bg-white p-6 rounded shadow border">
-                <input type="text" id="title" placeholder="כותרת" class="w-full mb-2 p-2 border"><br>
-                <textarea id="content" placeholder="תוכן" class="w-full mb-2 p-2 border"></textarea><br>
-                <button onclick="addContent()" class="bg-green-600 text-white px-4 py-2 rounded">שמור</button>
+        <div class="mt-12 text-center border-t pt-6">
+            <button onclick="adminLogin()" class="bg-slate-800 text-white px-6 py-2 rounded font-bold">כניסת מנהל</button>
+            <div id="adminPanel" class="hidden mt-6 bg-white p-6 rounded shadow border text-right">
+                <h3 class="font-bold mb-4">הוספת תוכן חדש</h3>
+                <input type="text" id="newTitle" placeholder="כותרת" class="w-full mb-2 p-2 border">
+                <textarea id="newContent" placeholder="תוכן" class="w-full mb-2 p-2 border"></textarea>
+                <select id="newType" class="w-full mb-2 p-2 border">
+                    <option value="תורה">חומש</option>
+                    <option value="בבלי">בבלי</option>
+                    <option value="ירושלמי">ירושלמי</option>
+                    <option value="מועדים">מועדים</option>
+                </select>
+                <button onclick="saveData()" class="w-full bg-green-600 text-white p-2 rounded">שמור באוצר</button>
             </div>
         </div>
     </main>
@@ -43,12 +48,33 @@
         let currentPearl = 0;
         const today = "כ״ח באייר תשפ״ו";
 
+        function adminLogin() {
+            const pass = prompt("נא להזין סיסמה:");
+            if (pass === "1234") { // כאן תבחר את הסיסמה שלך
+                document.getElementById('adminPanel').classList.remove('hidden');
+            } else {
+                alert("סיסמה שגויה!");
+            }
+        }
+
+        function saveData() {
+            let list = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
+            list.push({
+                title: document.getElementById('newTitle').value,
+                content: document.getElementById('newContent').value,
+                mainClass: document.getElementById('newType').value,
+                hebrewDate: today
+            });
+            localStorage.setItem('chidushim_v2', JSON.stringify(list));
+            location.reload();
+        }
+
         function loadData() {
             let chidushim = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
             let pearls = JSON.parse(localStorage.getItem('pearls_v2')) || [];
             
-            // רינדור חידושים
             const sections = { 'תורה': 'section-tora', 'בבלי': 'section-bavli', 'ירושלמי': 'section-yerushalmi', 'מועדים': 'section-moadim' };
+            
             chidushim.forEach(c => {
                 document.getElementById(sections[c.mainClass] || 'section-tora').innerHTML += `
                     <div class="bg-white p-4 rounded shadow border">
@@ -58,22 +84,21 @@
                     </div>`;
             });
 
-            // רינדור פנינים
             window.pearls = pearls;
-            renderPearl();
+            if(pearls.length > 0) renderPearl();
         }
 
         function renderPearl() {
-            const container = document.getElementById('pearlDisplayContainer');
-            if(window.pearls.length > 0) {
-                container.innerHTML = `<div><p class="text-lg">"${window.pearls[currentPearl].content}"</p><p class="text-xs mt-2">${window.pearls[currentPearl].hebrewDate || today}</p></div>`;
-            }
+            document.getElementById('pearlDisplayContainer').innerHTML = 
+                `<div><p>"${window.pearls[currentPearl].content}"</p><p class="text-xs mt-2">${window.pearls[currentPearl].hebrewDate || today}</p></div>`;
         }
 
-        function nextPearl() { if(window.pearls.length > 0) { currentPearl = (currentPearl + 1) % window.pearls.length; renderPearl(); } }
-        function prevPearl() { if(window.pearls.length > 0) { currentPearl = (currentPearl - 1 + window.pearls.length) % window.pearls.length; renderPearl(); } }
-        function toggleAdmin() { document.getElementById('adminPanel').classList.toggle('hidden'); }
-        
+        function changePearl(dir) {
+            if(window.pearls.length === 0) return;
+            currentPearl = (currentPearl + dir + window.pearls.length) % window.pearls.length;
+            renderPearl();
+        }
+
         loadData();
     </script>
 </body>
