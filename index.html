@@ -13,6 +13,14 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
+    <!-- תיבת חילוץ חירום חכמה למסננים ישנים -->
+    <div id="emergencyRecoverBox" class="bg-amber-500 text-slate-950 py-3 px-6 text-center font-bold text-sm shadow-md border-b-2 border-amber-600 animate-bounce flex justify-center items-center gap-3">
+        <span>📢 המערכת זיהתה פריטים מהגרסה הקודמת (ייתכן שחלקם מוסתרים בגלל שינוי המסננים)</span>
+        <button onclick="runDeepRecovery()" class="bg-slate-900 text-amber-400 px-4 py-1 rounded-lg hover:bg-slate-800 transition cursor-pointer shadow-md text-xs">
+            ♻️ תקן מסננים והחזר את דברי התורה מאתמול
+        </button>
+    </div>
+
     <!-- סרגל עליון יוקרתי -->
     <header class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white shadow-xl py-8 px-6 border-b-4 border-amber-500">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
@@ -26,7 +34,7 @@
         </div>
     </header>
 
-    <!-- אזור פנינים רץ (קרוסלה אינסופית) -->
+    <!-- אזור פנינים רץ -->
     <div class="bg-indigo-900 text-white py-4 shadow-inner border-b border-indigo-950">
         <div class="max-w-7xl mx-auto px-6">
             <h2 class="text-xs font-bold text-amber-400 mb-2 tracking-widest uppercase">✨ פניני חכמה ואמרות קצרות</h2>
@@ -41,7 +49,7 @@
     <!-- מרכז האתר -->
     <main class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-4 gap-8 py-10 flex-grow w-full">
         
-        <!-- אזור הטופס: מוסתר לציבור, פתוח רק למנהל -->
+        <!-- אזור הטופס -->
         <section id="adminFormSection" class="hidden lg:col-span-1">
             <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200 sticky top-6">
                 <h2 class="text-lg font-bold text-slate-900 mb-4 pb-2 border-b-2 border-amber-500 flex justify-between items-center">
@@ -122,6 +130,7 @@
                             <option value="בבלי">תלמוד בבלי</option>
                             <option value="ירושלמי">תלמוד ירושלמי</option>
                             <option value="מועדים">חגים ומועדים</option>
+                            <option value="כללי">כללי / ללא סיווג</option>
                         </select>
                     </div>
 
@@ -152,7 +161,6 @@
         </section>
     </main>
 
-    <!-- תחתית האתר -->
     <footer class="bg-slate-900 border-t-2 border-amber-500 text-slate-400 py-6 px-6 text-center text-xs mt-auto">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <span class="font-serif">© אוצר החידושים המשפחתי - למידה, יראת שמיים והנצחת התורה לדורות עולם.</span>
@@ -167,44 +175,90 @@
         
         const ADMIN_PASSWORD = "1234"; 
         
-        // --- מנגנון הגירה חצי אוטומטי לשחזור נתונים ישנים ---
-        let oldChidushim = JSON.parse(localStorage.getItem('chidushim')) || [];
-        let oldPearls = JSON.parse(localStorage.getItem('pearls')) || [];
-        
-        let chidushim = JSON.parse(localStorage.getItem('chidushim_v2'));
-        let pearls = JSON.parse(localStorage.getItem('pearls_v2'));
+        let chidushim = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
+        let pearls = JSON.parse(localStorage.getItem('pearls_v2')) || [];
 
-        // אם המאגר החדש ריק לחלוטין ויש נתונים במאגר הישן - נעביר אותם מיד
-        if (chidushim === null) {
-            if (oldChidushim.length > 0) {
-                chidushim = oldChidushim.map(c => ({
-                    ...c,
-                    hebrewDate: c.date || new Date(c.id).toLocaleDateString('he-IL') // שמירה על התאריך המקורי
-                }));
-                localStorage.setItem('chidushim_v2', JSON.stringify(chidushim));
-            } else {
-                chidushim = [];
+        function checkEmergencyStatus() {
+            let foundOldKeys = false;
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (['chidushim', 'pearls', 'torahData', 'savedData', 'pearlsData'].includes(key)) {
+                    foundOldKeys = true;
+                    break;
+                }
+            }
+            if (!foundOldKeys) {
+                document.getElementById('emergencyRecoverBox').style.display = 'none';
             }
         }
-        
-        if (pearls === null) {
-            if (oldPearls.length > 0) {
-                pearls = oldPearls.map(p => ({
-                    ...p,
-                    hebrewDate: p.date || new Date(p.id).toLocaleDateString('he-IL')
-                }));
-                localStorage.setItem('pearls_v2', JSON.stringify(pearls));
-            } else {
-                pearls = [];
-            }
+
+        // 🛠️ פונקציית תיקון מסננים ושחזור אגרסיבית
+        function runDeepRecovery() {
+            let totalRecovered = 0;
+            const keysToScan = ['chidushim', 'torahData', 'savedData', 'chidushim_v2'];
+            
+            keysToScan.forEach(key => {
+                let oldData = localStorage.getItem(key);
+                if (oldData) {
+                    try {
+                        let parsed = JSON.parse(oldData);
+                        if (!Array.isArray(parsed)) parsed = [parsed];
+                        
+                        parsed.forEach(c => {
+                            // מנרמלים את המסננים הישנים שיתאימו למבנה החדש
+                            let targetMainClass = c.mainClass || 'כללי';
+                            let targetSubClass = c.subClass || '';
+                            let targetChumash = c.chumash || '';
+
+                            // אם הסיווג הישן לא מוכר במערכת החדשה - הופכים ל'כללי' כדי שלא ייעלם
+                            if (targetMainClass === 'תורה' && targetSubClass && !PARASHOT.includes(targetSubClass)) {
+                                targetMainClass = 'כללי';
+                                targetSubClass = '';
+                            }
+                            if ((targetMainClass === 'בבלי' || targetMainClass === 'ירושלמי') && targetSubClass && !MASECHTOT.includes(targetSubClass)) {
+                                targetMainClass = 'כללי';
+                                targetSubClass = '';
+                            }
+
+                            // מניעת כפילויות לפי תוכן הטקסט
+                            let existingIndex = chidushim.findIndex(exist => exist.content === (c.content || c.text));
+                            
+                            if (existingIndex === -1) {
+                                chidushim.push({
+                                    id: c.id || Date.now() + Math.random(),
+                                    title: c.title || 'חידוש משוחזר מאתמול',
+                                    hebrewDate: c.hebrewDate || c.date || new Date().toLocaleDateString('he-IL'),
+                                    author: c.author || 'אלמוני',
+                                    mainClass: targetMainClass,
+                                    chumash: targetChumash,
+                                    subClass: targetSubClass,
+                                    content: c.content || c.text || ''
+                                });
+                                totalRecovered++;
+                            } else {
+                                // אם הוא קיים אך המסננים שלו היו שבורים - נתקן אותו במקום
+                                chidushim[existingIndex].mainClass = targetMainClass;
+                                chidushim[existingIndex].subClass = targetSubClass;
+                                chidushim[existingIndex].chumash = targetChumash;
+                            }
+                        });
+                    } catch(e) {}
+                }
+            });
+
+            localStorage.setItem('chidushim_v2', JSON.stringify(chidushim));
+            alert("מנגנון הגנת מסננים הופעל! כל דברי התורה עודכנו למבנה החדש ויוצגו כעת במסך.");
+            document.getElementById('emergencyRecoverBox').style.display = 'none';
+            renderApp();
         }
-        // ----------------------------------------------------
 
         let isAdmin = false;
         let pearlIndex = 0;
         let pearlInterval;
 
         document.getElementById('torahForm').addEventListener('submit', handleFormSubmit);
+        
+        checkEmergencyStatus();
         renderApp();
         startPearlsLoop();
 
@@ -215,8 +269,7 @@
                 const data = await response.json();
                 return data.hebrew; 
             } catch (error) {
-                const fallbackDate = new Date();
-                return fallbackDate.toLocaleDateString('he-IL'); 
+                return new Date().toLocaleDateString('he-IL'); 
             }
         }
 
@@ -271,28 +324,24 @@
 
         async function handleFormSubmit(e) {
             e.preventDefault();
-            
             const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.textContent;
-            submitBtn.textContent = "מחשב תאריך עברי ומאבטח...";
             submitBtn.disabled = true;
 
             const hebrewDateStr = await fetchHebrewDate();
             const type = document.getElementById('contentType').value;
 
             if (type === 'פנינה') {
-                const newPearl = {
+                pearls.unshift({
                     id: Date.now(),
                     content: document.getElementById('content').value,
                     author: document.getElementById('author').value,
                     hebrewDate: hebrewDateStr
-                };
-                pearls.unshift(newPearl);
+                });
                 localStorage.setItem('pearls_v2', JSON.stringify(pearls));
                 startPearlsLoop();
             } else {
                 const mainClass = document.getElementById('mainClass').value;
-                const newChidush = {
+                chidushim.unshift({
                     id: Date.now(),
                     title: document.getElementById('title').value,
                     hebrewDate: hebrewDateStr,
@@ -301,28 +350,23 @@
                     chumash: mainClass === 'תורה' ? document.getElementById('chumash').value : '',
                     subClass: mainClass !== 'כללי' ? document.getElementById('subClass').value : '',
                     content: document.getElementById('content').value
-                };
-                chidushim.unshift(newChidush);
+                });
                 localStorage.setItem('chidushim_v2', JSON.stringify(chidushim));
             }
 
-            submitBtn.textContent = originalBtnText;
             submitBtn.disabled = false;
             document.getElementById('title').value = '';
             document.getElementById('content').value = '';
-            
             renderApp();
         }
 
         function startPearlsLoop() {
             clearInterval(pearlInterval);
             const container = document.getElementById('pearlsContainer');
-            
             if (pearls.length === 0) {
                 container.innerHTML = `<span class="text-slate-400 text-sm italic">עדיין לא הוכנסו פנינים למאגר...</span>`;
                 return;
             }
-
             pearlIndex = 0;
             const displayPearl = () => {
                 const p = pearls[pearlIndex];
@@ -330,44 +374,30 @@
                 container.style.opacity = 0;
                 setTimeout(() => {
                     container.innerHTML = `
-                        <span class="text-amber-400 font-serif">"</span>
-                        <span>${p.content}</span>
-                        <span class="text-amber-400 font-serif">"</span>
+                        <span class="text-amber-400 font-serif">"</span><span>${p.content}</span><span class="text-amber-400 font-serif">"</span>
                         <span class="text-xs text-indigo-300 mr-2">(${p.author} - ${p.hebrewDate})</span>
-                        ${isAdmin ? `<button onclick="deletePearl(${p.id})" class="text-red-400 hover:text-red-300 text-xs mr-3 font-sans">[מחק פנינה]</button>` : ''}
+                        ${isAdmin ? `<button onclick="deletePearl(${p.id})" class="text-red-400 hover:text-red-300 text-xs mr-3 font-sans">[מחק]</button>` : ''}
                     `;
                     container.style.opacity = 1;
                 }, 300);
-
                 pearlIndex = (pearlIndex + 1) % pearls.length;
             };
-
             displayPearl();
-            if(pearls.length > 1) {
-                pearlInterval = setInterval(displayPearl, 5000);
-            }
+            if(pearls.length > 1) pearlInterval = setInterval(displayPearl, 5000);
         }
 
         function handleFilterMainChange() {
             const val = document.getElementById('filterMain').value;
             const subContainer = document.getElementById('filterSubContainer');
-            const subLabel = document.getElementById('filterSubLabel');
             const subSelect = document.getElementById('filterSub');
 
-            if (val === 'הכל') {
+            if (val === 'הכל' || val === 'כללי') {
                 subContainer.classList.add('hidden');
             } else {
                 subContainer.classList.remove('hidden');
-                if (val === 'תורה') {
-                    subLabel.textContent = "פרשה";
-                    fillSelect(subSelect, ["כל הפרשות", ...PARASHOT]);
-                } else if (val === 'בבלי' || val === 'ירושלמי') {
-                    subLabel.textContent = "מסכת";
-                    fillSelect(subSelect, ["כל המסכתות", ...MASECHTOT]);
-                } else if (val === 'מועדים') {
-                    subLabel.textContent = "מועד";
-                    fillSelect(subSelect, ["כל המועדים", ...CHAGIM]);
-                }
+                if (val === 'תורה') fillSelect(subSelect, ["כל הפרשות", ...PARASHOT]);
+                else if (val === 'בבלי' || val === 'ירושלמי') fillSelect(subSelect, ["כל המסכתות", ...MASECHTOT]);
+                else if (val === 'מועדים') fillSelect(subSelect, ["כל המועדים", ...CHAGIM]);
             }
             filterCards();
         }
@@ -382,20 +412,23 @@
             container.innerHTML = '';
 
             const filtered = chidushim.filter(c => {
-                const matchMain = (filterMain === 'הכל' || c.mainClass === filterMain);
+                // אם מחפשים 'הכל', או שהמדור מתאים בדיוק
+                let matchMain = (filterMain === 'הכל' || c.mainClass === filterMain);
                 
+                // טיפול בחידושים ישנים: אם הם לא קיבלו סיווג ראשי תקין, נציג אותם תחת 'כללי' או תחת 'הכל'
+                if (!c.mainClass || c.mainClass === '') {
+                    matchMain = (filterMain === 'הכל' || filterMain === 'כללי');
+                }
+
                 let matchSub = true;
-                if (filterMain !== 'הכל' && filterSub !== 'כל הפרשות' && filterSub !== 'כל המסכתות' && filterSub !== 'כל המועדים' && filterSub !== '') {
+                if (filterMain !== 'הכל' && filterMain !== 'כללי' && filterSub !== 'כל הפרשות' && filterSub !== 'כל המסכתות' && filterSub !== 'כל המועדים' && filterSub !== '') {
                     matchSub = (c.subClass === filterSub);
                 }
 
                 const matchAuthor = (filterAuthor === 'הכל' || c.author === filterAuthor);
-                
                 const matchSearch = !filterSearch || 
                                     (c.title && c.title.toLowerCase().includes(filterSearch)) || 
-                                    c.content.toLowerCase().includes(filterSearch) ||
-                                    (c.chumash && c.chumash.toLowerCase().includes(filterSearch)) ||
-                                    (c.subClass && c.subClass.toLowerCase().includes(filterSearch));
+                                    c.content.toLowerCase().includes(filterSearch);
 
                 return matchMain && matchSub && matchAuthor && matchSearch;
             });
@@ -408,37 +441,37 @@
             }
 
             filtered.forEach(item => {
-                let badgeText = 'כללי';
+                let badgeText = item.mainClass || 'כללי / ללא סיווג';
                 let badgeColor = 'bg-slate-100 text-slate-800 border-slate-200';
                 
                 if (item.mainClass === 'תורה') {
-                    badgeText = `חומש ${item.chumash} - פרשת ${item.subClass}`;
+                    badgeText = `חומש ${item.chumash || ''} - פרשת ${item.subClass || ''}`;
                     badgeColor = 'bg-amber-50 text-amber-800 border-amber-200';
                 } else if (item.mainClass === 'בבלי') {
-                    badgeText = `גמרא בבלי - מסכת ${item.subClass}`;
+                    badgeText = `גמרא בבלי - מסכת ${item.subClass || ''}`;
                     badgeColor = 'bg-blue-50 text-blue-800 border-blue-200';
                 } else if (item.mainClass === 'ירושלמי') {
-                    badgeText = `גמרא ירושלמי - מסכת ${item.subClass}`;
+                    badgeText = `גמרא ירושלמי - מסכת ${item.subClass || ''}`;
                     badgeColor = 'bg-teal-50 text-teal-800 border-teal-200';
                 } else if (item.mainClass === 'מועדים') {
-                    badgeText = `מועד - ${item.subClass}`;
+                    badgeText = `מועד - ${item.subClass || ''}`;
                     badgeColor = 'bg-purple-50 text-purple-800 border-purple-200';
                 }
 
                 const card = document.createElement('div');
-                card.className = 'bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition duration-200 relative overflow-hidden';
+                card.className = 'bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition';
                 card.innerHTML = `
                     <div>
                         <div class="flex justify-between items-center mb-3">
                             <span class="text-[11px] font-bold px-2.5 py-1 rounded-md border ${badgeColor}">${badgeText}</span>
                             <span class="text-xs font-serif font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">${item.hebrewDate || ''}</span>
                         </div>
-                        <h4 class="text-lg font-bold text-slate-900 mb-2 font-serif">${item.title || 'פנינה/אמרה'}</h4>
-                        <p class="text-slate-700 text-sm leading-relaxed whitespace-pre-line font-sans">${item.content}</p>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2 font-serif">${item.title || 'חידוש משוחזר'}</h4>
+                        <p class="text-slate-700 text-sm leading-relaxed whitespace-pre-line">${item.content}</p>
                     </div>
                     <div class="mt-6 pt-3 border-t border-slate-100 flex justify-between items-center text-xs text-slate-500">
                         <span>נכתב ע"י: <strong class="text-slate-800 font-medium">${item.author}</strong></span>
-                        ${isAdmin ? `<button onclick="deleteChidush(${item.id})" class="text-red-600 hover:text-red-700 font-bold cursor-pointer">[מחק חידוש]</button>` : ''}
+                        ${isAdmin ? `<button onclick="deleteChidush(${item.id})" class="text-red-600 font-bold">[מחק]</button>` : ''}
                     </div>
                 `;
                 container.appendChild(card);
@@ -448,12 +481,8 @@
         function updateAuthorFilterOptions() {
             const select = document.getElementById('filterAuthor');
             const currentValue = select.value;
-            
-            const allAuthors = [
-                ...chidushim.map(c => c.author),
-                ...pearls.map(p => p.author)
-            ];
-            const uniqueAuthors = [...new Set(allAuthors)];
+            const allAuthors = [...chidushim.map(c => c.author), ...pearls.map(p => p.author)];
+            const uniqueAuthors = [...new Set(allAuthors)].filter(Boolean);
             
             select.innerHTML = '<option value="הכל">כל המחברים</option>';
             uniqueAuthors.forEach(auth => {
@@ -476,7 +505,7 @@
                     document.getElementById('displaySection').classList.replace('lg:col-span-4', 'lg:col-span-3');
                     updateSubClassificationOptions();
                 } else if (pass !== null) {
-                    alert("סיסמה שגויה! הגישה נחסמה.");
+                    alert("סיסמה שגויה!");
                 }
             } else {
                 isAdmin = false;
@@ -490,7 +519,7 @@
         }
 
         function deleteChidush(id) {
-            if(confirm('האם למחוק סופית את החידוש הזה ממאגר הדורות?')) {
+            if(confirm('למחוק את החידוש?')) {
                 chidushim = chidushim.filter(c => c.id !== id);
                 localStorage.setItem('chidushim_v2', JSON.stringify(chidushim));
                 renderApp();
@@ -498,7 +527,7 @@
         }
 
         function deletePearl(id) {
-            if(confirm('האם למחוק סופית פנינה זו מהגלגל?')) {
+            if(confirm('למחוק את הפנינה?')) {
                 pearls = pearls.filter(p => p.id !== id);
                 localStorage.setItem('pearls_v2', JSON.stringify(pearls));
                 startPearlsLoop();
