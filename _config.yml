@@ -1,10 +1,12 @@
-title: אוצר תורה - וילנסקי
-description: חידושי תורה, פנינים וורטים - מורשת לדורות
-baseurl: "/torah-archive"   # חשוב! כי הריפו נקרא torah-archive
+title: אוצר החידושים
+description: חידושי תורה של משפחת דוד וילנסקי - מורשת לדורות
+baseurl: ""  # אם הריפו הוא vilenskytorah.github.io אז השאר ריק
 url: "https://vilenskytorah.github.io"
-
 lang: he
 rtl: true
+
+github_username: vilenskytorah
+repository: torah-archive
 
 # Collections
 collections:
@@ -18,21 +20,7 @@ collections:
 defaults:
   - scope:
       path: ""
-    values:
-      layout: default
-  - scope:
-      path: ""
-      type: chidushim
+      type: "chidushim"
     values:
       layout: chidush
-  - scope:
-      path: ""
-      type: pninim
-    values:
-      layout: pnina
-
-sass:
-  sass_dir: _sass
-
-exclude:
-  - admin/
+      author: "דוד וילנסקי"
