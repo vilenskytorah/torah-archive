@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>אוצר החידושים - מורשת לדורות</title>
+    <title>אוצר החידושים</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
 
-    <!-- Header -->
     <header class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white shadow-xl py-8 px-6 border-b-4 border-amber-500">
         <div class="max-w-7xl mx-auto text-center">
             <h1 class="text-4xl font-extrabold text-amber-400 font-serif">אוצר החידושים</h1>
@@ -16,50 +15,57 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-6 py-10">
-        <!-- מדור חידושים -->
-        <section id="chidushimSection" class="mb-12">
-            <h2 class="text-2xl font-bold mb-6 border-b-2 border-indigo-500 pb-2">📚 דבר תורה וחידושים</h2>
-            <div id="section-tora" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <section id="pearlsSection" class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 border-b-2 border-emerald-500 pb-2 text-emerald-800">✨ פניני חכמה</h2>
+            <div id="section-pearls" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
         </section>
 
-        <!-- מדור פנינים -->
-        <section id="pearlsSection">
-            <h2 class="text-2xl font-bold mb-6 border-b-2 border-emerald-500 pb-2">✨ פנינים</h2>
-            <div id="section-pearls" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+        <section id="chidushimSection">
+            <h2 class="text-2xl font-bold mb-6 border-b-2 border-indigo-500 pb-2 text-indigo-900">📚 חידושי תורה</h2>
+            <div id="section-tora" class="mb-8"></div>
+            <div id="section-bavli" class="mb-8"></div>
+            <div id="section-yerushalmi" class="mb-8"></div>
+            <div id="section-moadim" class="mb-8"></div>
         </section>
     </main>
 
     <script>
         function renderAll() {
-            // טעינת הנתונים
             let chidushim = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
             let pearls = JSON.parse(localStorage.getItem('pearls_v2')) || [];
-            const today = "כ״ז באייר תשפ״ו";
-
-            // רינדור חידושים
-            const toraContainer = document.getElementById('section-tora');
-            toraContainer.innerHTML = chidushim.map(item => `
-                <div class="bg-white p-5 rounded-2xl shadow-md border border-slate-200">
-                    <h3 class="font-bold text-lg text-indigo-900">${item.title}</h3>
-                    <p class="text-sm mt-2 text-slate-600">${item.content}</p>
-                    <div class="mt-4 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded inline-block">
-                        ${item.hebrewDate || today}
-                    </div>
-                </div>
-            `).join('');
+            const today = "כ״ח באייר תשפ״ו";
 
             // רינדור פנינים
-            const pearlsContainer = document.getElementById('section-pearls');
-            pearlsContainer.innerHTML = pearls.map(item => `
-                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                    <p class="text-sm text-emerald-900 italic">"${item.content}"</p>
-                    <div class="mt-2 text-[10px] text-emerald-600 font-bold">
-                        ${item.hebrewDate || today}
-                    </div>
+            const pCont = document.getElementById('section-pearls');
+            pCont.innerHTML = pearls.map(p => `
+                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100 shadow-sm">
+                    <p class="text-sm italic">"${p.content}"</p>
+                    <div class="mt-2 text-[10px] font-bold text-emerald-600">${p.hebrewDate || today}</div>
                 </div>
             `).join('');
-        }
 
+            // רינדור חידושים
+            const sections = {
+                'תורה': document.getElementById('section-tora'),
+                'בבלי': document.getElementById('section-bavli'),
+                'ירושלמי': document.getElementById('section-yerushalmi'),
+                'מועדים': document.getElementById('section-moadim')
+            };
+
+            chidushim.forEach(c => {
+                const target = sections[c.mainClass] || sections['תורה'];
+                const div = document.createElement('div');
+                div.className = "bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-4";
+                div.innerHTML = `
+                    <h3 class="font-bold text-xl text-indigo-900 mb-2">${c.title}</h3>
+                    <p class="text-slate-600 leading-relaxed">${c.content}</p>
+                    <div class="mt-4 text-[11px] font-bold text-amber-700 bg-amber-50 inline-block px-3 py-1 rounded-full">
+                        ${c.hebrewDate || today}
+                    </div>
+                `;
+                target.appendChild(div);
+            });
+        }
         renderAll();
     </script>
 </body>
