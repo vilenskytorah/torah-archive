@@ -1,0 +1,35 @@
+title: אוצר תורה - וילנסקי
+description: חידושי תורה, פנינים וורטים - מורשת לדורות
+baseurl: "/torah-archive"   # חשוב! כי הריפו נקרא torah-archive
+url: "https://vilenskytorah.github.io"
+
+lang: he
+rtl: true
+
+# Collections
+collections:
+  chidushim:
+    output: true
+    permalink: /chidush/:title/
+  pninim:
+    output: true
+    permalink: /pnina/:title/
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+  - scope:
+      path: ""
+      type: chidushim
+    values:
+      layout: chidush
+  - scope:
+      path: ""
+      type: pninim
+    values:
+      layout: pnina
+
+sass:
+  sass_dir: _sass
