@@ -8,11 +8,6 @@
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen p-4">
 
-    <!-- הודעת אישור -->
-    <div id="statusBanner" class="max-w-4xl mx-auto mb-4 p-2 bg-green-100 text-green-800 text-center text-xs rounded hidden">
-        המערכת ביצעה תיקון תאריכים לכל המאגר!
-    </div>
-
     <div class="max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-center mb-8 border-b-2 border-amber-500 pb-4">אוצר החידושים</h1>
         
@@ -25,20 +20,10 @@
     </div>
 
     <script>
-        function fixAndRender() {
-            const today = "כ״ח באייר תשפ״ו";
+        // הצגת הנתונים מהזיכרון שכבר תוקן
+        function renderAll() {
             let chidushim = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
             
-            // בדיקה אם צריך תיקון
-            let needsUpdate = chidushim.length > 0 && (!chidushim[0].hebrewDate || chidushim[0].hebrewDate.includes('1') || chidushim[0].hebrewDate.includes('2'));
-            
-            if(needsUpdate) {
-                chidushim.forEach(item => { item.hebrewDate = today; });
-                localStorage.setItem('chidushim_v2', JSON.stringify(chidushim));
-                document.getElementById('statusBanner').classList.remove('hidden');
-            }
-
-            // הצגה
             const sections = {
                 'תורה': document.getElementById('section-tora'),
                 'בבלי': document.getElementById('section-bavli'),
@@ -50,19 +35,18 @@
                 const target = sections[item.mainClass] || sections['תורה'];
                 const card = document.createElement('div');
                 card.className = "bg-white p-4 rounded-xl shadow border border-slate-200";
-                // כאן הוספתי את התאריך שיוצג בבירור:
                 card.innerHTML = `
                     <h3 class="font-bold text-lg">${item.title}</h3>
                     <p class="text-sm text-slate-600 mt-2 whitespace-pre-line">${item.content}</p>
                     <div class="mt-4 pt-2 border-t border-slate-100 text-[10px] font-bold text-amber-700 bg-amber-50 inline-block px-2 py-1 rounded">
-                        תאריך: ${item.hebrewDate || today}
+                        תאריך: ${item.hebrewDate || "כ״ח באייר תשפ״ו"}
                     </div>
                 `;
                 target.appendChild(card);
             });
         }
 
-        fixAndRender();
+        renderAll();
     </script>
 </body>
 </html>
