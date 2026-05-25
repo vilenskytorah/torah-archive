@@ -1,13 +1,10 @@
 title: אוצר תורה
-description: חידושי תורה, פנינים וורטים - מורשת משפחת וילנסקי
-baseurl: "/torah-archive"   # חשוב מאוד!
+description: חידושי תורה ופנינים - משפחת וילנסקי
+baseurl: "/torah-archive"
 url: "https://vilenskytorah.github.io"
 
-lang: he
-rtl: true
-
 collections:
-  chidushim:
-    output: true
   pninim:
+    output: true
+  chidushim:
     output: true
