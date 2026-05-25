@@ -8,19 +8,18 @@
     <style>
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         
-        /* אנימציית גלגלת רצה חלקה מימין לשמאל */
-        @keyframes marquee {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
-        .marquee-track {
-            display: inline-flex;
+        /* אזור הגלגלת - מניעת שבירת שורות */
+        .marquee-viewport {
+            overflow: hidden;
             white-space: nowrap;
-            animation: marquee 25s linear infinite;
+            display: flex;
+            position: relative;
+            width: 100%;
         }
-        /* עצירת הגלגלת בעת מעבר עכבר לקריאה נוחה */
-        .marquee-track:hover {
-            animation-play-state: paused;
+        .marquee-content {
+            display: inline-flex;
+            gap: 4rem;
+            padding-left: 4rem;
         }
     </style>
 </head>
@@ -47,14 +46,14 @@
         </div>
     </header>
 
-    <!-- גלגלת פנינים חכמה - זרימה רציפה ללא קטיעות -->
+    <!-- גלגלת פנינים חכמה וחסינת תקלות -->
     <div class="bg-indigo-900 text-white py-3 shadow-inner border-b border-indigo-950">
         <div class="max-w-7xl mx-auto px-6">
             <h2 class="text-xs font-bold text-amber-400 mb-1 tracking-widest uppercase">✨ פניני חכמה ואמרות קצרות (נעצר במעבר עכבר)</h2>
-            <div class="relative overflow-hidden w-full bg-indigo-950/50 rounded-xl py-2.5 px-4 border border-indigo-800 flex items-center">
-                <div class="w-full overflow-hidden flex">
-                    <div id="pearlsMarqueeTrack" class="marquee-track gap-16 items-center text-md font-medium">
-                        <!-- הפנינים יישתלו כאן דינמית בריצה רציפה -->
+            <div class="relative w-full bg-indigo-950/50 rounded-xl py-2.5 px-4 border border-indigo-800 flex items-center">
+                <div id="marqueeViewport" class="marquee-viewport" onmouseenter="pauseMarquee()" onmouseleave="resumeMarquee()">
+                    <div id="marqueeContent" class="marquee-content">
+                        <!-- הפנינים יישתלו כאן -->
                     </div>
                 </div>
             </div>
@@ -245,6 +244,11 @@
         let chidushim = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
         let pearls = JSON.parse(localStorage.getItem('pearls_v2')) || [];
 
+        // משתני ניהול גלגלת חסינת תקלות
+        let marqueeId = null;
+        let isMarqueePaused = false;
+        let currentScrollPos = 0;
+
         function getHebrewDateBackup() {
             try {
                 const options = { calendar: 'hebrew', year: 'numeric', month: 'long', day: 'numeric' };
@@ -325,7 +329,7 @@
         fillSelect(document.getElementById('subClass'), PARASHOT);
         checkEmergencyStatus();
         renderApp();
-        renderMarqueePearls();
+        initScrollMarquee();
 
         function toggleFormFields() {
             const type = document.getElementById('contentType').value;
@@ -399,7 +403,7 @@
                 localStorage.setItem('pearls_v2', JSON.stringify(pearls));
                 
                 document.getElementById('content').value = '';
-                renderMarqueePearls();
+                initScrollMarquee();
                 alert('הפנינה נשמרה בהצלחה ותרוץ בגלגלת העליונה!');
             } else {
                 const mainClass = document.getElementById('mainClass').value;
@@ -425,18 +429,22 @@
             renderApp();
         }
 
-        /* בניית הגלגלת הרצה מחדש בצורה יציבה, רציפה וללא הגבלת גובה */
-        function renderMarqueePearls() {
-            const track = document.getElementById('pearlsMarqueeTrack');
+        /* מנגנון גלגלת עצמאי מבוסס גלילה אמיתית - עובד תמיד ללא קשר לכמות הטקסט */
+        function initScrollMarquee() {
+            if(marqueeId) cancelAnimationFrame(marqueeId);
+            
+            const content = document.getElementById('marqueeContent');
+            const viewport = document.getElementById('marqueeViewport');
+            
             if (pearls.length === 0) {
-                track.innerHTML = `<span class="text-slate-400 text-sm italic py-1">עדיין לא הוכנסו פנינים למאגר...</span>`;
+                content.innerHTML = `<span class="text-slate-400 text-sm italic py-1">עדיין לא הוכנסו פנינים למאגר...</span>`;
                 return;
             }
 
-            let htmlContent = '';
+            let htmlStr = '';
             pearls.forEach(p => {
-                htmlContent += `
-                    <div class="flex items-center gap-2 font-sans text-sm md:text-base">
+                htmlStr += `
+                    <div class="flex items-center gap-2 text-sm md:text-base select-none">
                         <span class="text-amber-400 font-serif text-xl">"</span>
                         <span class="text-slate-100 font-medium">${p.content}</span>
                         <span class="text-amber-400 font-serif text-xl">"</span>
@@ -446,9 +454,32 @@
                 `;
             });
 
-            // שכפול קל של התוכן כדי לייצר רצף זרימה מעגלי יפה בדפדפן
-            track.innerHTML = htmlContent + (pearls.length > 1 ? htmlContent : '');
+            // משכפלים 3 פעמים כדי להבטיח שיש מספיק תוכן פיזי שימלא את הרוחב וימנע חלל ריק
+            content.innerHTML = htmlStr + htmlStr + htmlStr;
+            currentScrollPos = 0;
+            viewport.scrollLeft = 0;
+
+            function scrollStep() {
+                if (!isMarqueePaused) {
+                    currentScrollPos += 1; // מהירות הגלילה (1 פיקסל בכל פריימ)
+                    
+                    // כיוון RTL גורם לגלילה שמאלה להיות שלילית בדפדפנים מסוימים, נשווה לפי השליש הראשון
+                    const singleSetWidth = content.scrollWidth / 3;
+                    if (Math.abs(currentScrollPos) >= singleSetWidth) {
+                        currentScrollPos = 0;
+                    }
+                    
+                    viewport.scrollLeft = currentScrollPos;
+                }
+                marqueeId = requestAnimationFrame(scrollStep);
+            }
+            
+            // הפעלה מחדש
+            marqueeId = requestAnimationFrame(scrollStep);
         }
+
+        function pauseMarquee() { isMarqueePaused = true; }
+        function resumeMarquee() { isMarqueePaused = false; }
 
         function renderApp() {
             const searchText = document.getElementById('mainSearchInput').value.toLowerCase();
@@ -585,7 +616,7 @@
                 document.getElementById('adminFormSection').classList.add('hidden');
                 document.getElementById('displaySection').classList.replace('lg:col-span-3', 'lg:col-span-4');
             }
-            renderMarqueePearls();
+            initScrollMarquee();
             renderApp();
         }
 
@@ -601,7 +632,7 @@
             if(confirm('למחוק את הפנינה?')) {
                 pearls = pearls.filter(p => String(p.id) !== String(id));
                 localStorage.setItem('pearls_v2', JSON.stringify(pearls));
-                renderMarqueePearls();
+                initScrollMarquee();
                 renderApp();
             }
         }
