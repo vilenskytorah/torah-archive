@@ -161,9 +161,9 @@
         </section>
     </main>
 
-    <!-- 🌟 חלונית מודאל לעריכת סיווגים (מוסתרת כברירת מחדל) -->
+    <!-- 🌟 חלונית מודאל לעריכת סיווגים -->
     <div id="editModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex justify-center items-center p-4 z-50 animate-fade-in">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-scale-in">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
             <div class="bg-slate-900 text-white p-4 font-bold text-md border-b-2 border-amber-500 flex justify-between items-center">
                 <span>✍️ עריכת סיווג דבר תורה</span>
                 <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-xl cursor-pointer">&times;</button>
@@ -242,7 +242,6 @@
         }
 
         function runDeepRecovery() {
-            let totalRecovered = 0;
             const keysToScan = ['chidushim', 'torahData', 'savedData', 'chidushim_v2'];
             
             keysToScan.forEach(key => {
@@ -269,8 +268,10 @@
                             let existingIndex = chidushim.findIndex(exist => exist.content === (c.content || c.text));
                             
                             if (existingIndex === -1) {
+                                // 🛠️ כאן התיקון הקריטי: יוצרים מפתח מחרוזת נקי ובטוח לטיפול בקוד
+                                let secureId = "id_" + String(c.id || Date.now()).replace('.', '') + String(Math.floor(Math.random() * 1000));
                                 chidushim.push({
-                                    id: c.id || Date.now() + Math.random(),
+                                    id: secureId,
                                     title: c.title || 'חידוש משוחזר מאתמול',
                                     hebrewDate: c.hebrewDate || c.date || new Date().toLocaleDateString('he-IL'),
                                     author: c.author || 'אלמוני',
@@ -279,7 +280,6 @@
                                     subClass: targetSubClass,
                                     content: c.content || c.text || ''
                                 });
-                                totalRecovered++;
                             } else {
                                 chidushim[existingIndex].mainClass = targetMainClass;
                                 chidushim[existingIndex].subClass = targetSubClass;
@@ -330,7 +330,6 @@
             }
         }
 
-        // פונקציית עדכון אפשרויות דינמית - מותאמת גם לטופס הרגיל וגם לחלונית העריכה
         function updateSubClassificationOptions(mainId, chumashContId, subContId, subLabelId, subSelectId) {
             const main = document.getElementById(mainId).value;
             const chumashContainer = document.getElementById(chumashContId);
@@ -377,7 +376,7 @@
 
             if (type === 'פנינה') {
                 pearls.unshift({
-                    id: Date.now(),
+                    id: "p_" + Date.now(),
                     content: document.getElementById('content').value,
                     author: document.getElementById('author').value,
                     hebrewDate: hebrewDateStr
@@ -387,7 +386,7 @@
             } else {
                 const mainClass = document.getElementById('mainClass').value;
                 chidushim.unshift({
-                    id: Date.now(),
+                    id: "c_" + Date.now(),
                     title: document.getElementById('title').value,
                     hebrewDate: hebrewDateStr,
                     author: document.getElementById('author').value,
@@ -421,7 +420,7 @@
                     container.innerHTML = `
                         <span class="text-amber-400 font-serif">"</span><span>${p.content}</span><span class="text-amber-400 font-serif">"</span>
                         <span class="text-xs text-indigo-300 mr-2">(${p.author} - ${p.hebrewDate})</span>
-                        ${isAdmin ? `<button onclick="deletePearl(${p.id})" class="text-red-400 hover:text-red-300 text-xs mr-3 font-sans">[מחק]</button>` : ''}
+                        ${isAdmin ? `<button onclick="deletePearl('${p.id}')" class="text-red-400 hover:text-red-300 text-xs mr-3 font-sans cursor-pointer">[מחק]</button>` : ''}
                     `;
                     container.style.opacity = 1;
                 }, 300);
@@ -515,8 +514,8 @@
                         <span>נכתב ע"י: <strong class="text-slate-800 font-medium">${item.author}</strong></span>
                         ${isAdmin ? `
                             <div class="flex gap-2">
-                                <button onclick="openEditModal(${item.id})" class="text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer">✍️ ערוך סיווג</button>
-                                <button onclick="deleteChidush(${item.id})" class="text-red-600 font-bold cursor-pointer">[מחק]</button>
+                                <button onclick="openEditModal('${item.id}')" class="text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer">✍️ ערוך סיווג</button>
+                                <button onclick="deleteChidush('${item.id}')" class="text-red-600 font-bold cursor-pointer">[מחק]</button>
                             </div>
                         ` : ''}
                     </div>
@@ -525,15 +524,13 @@
             });
         }
 
-        // 🛠️ פונקציות ניהול המודאל לעריכת סיווגים
         function openEditModal(id) {
-            const item = chidushim.find(c => c.id === id);
+            const item = chidushim.find(c => String(c.id) === String(id));
             if (!item) return;
 
             document.getElementById('editItemId').value = id;
             document.getElementById('editMainClass').value = item.mainClass || 'כללי';
             
-            // טעינת תפריטי הבחירה המשניים
             updateSubClassificationOptions('editMainClass', 'editChumashContainer', 'editSubClassContainer', 'editSubClassLabel', 'editSubClass');
             
             if (item.mainClass === 'תורה') {
@@ -551,10 +548,10 @@
         }
 
         function saveClassificationEdit() {
-            const id = parseFloat(document.getElementById('editItemId').value);
+            const id = document.getElementById('editItemId').value;
             const mainClass = document.getElementById('editMainClass').value;
             
-            const index = chidushim.findIndex(c => c.id === id);
+            const index = chidushim.findIndex(c => String(c.id) === String(id));
             if (index !== -1) {
                 chidushim[index].mainClass = mainClass;
                 chidushim[index].chumash = mainClass === 'תורה' ? document.getElementById('editChumash').value : '';
@@ -608,7 +605,7 @@
 
         function deleteChidush(id) {
             if(confirm('למחוק את החידוש?')) {
-                chidushim = chidushim.filter(c => c.id !== id);
+                chidushim = chidushim.filter(c => String(c.id) !== String(id));
                 localStorage.setItem('chidushim_v2', JSON.stringify(chidushim));
                 renderApp();
             }
@@ -616,7 +613,7 @@
 
         function deletePearl(id) {
             if(confirm('למחוק את הפנינה?')) {
-                pearls = pearls.filter(p => p.id !== id);
+                pearls = pearls.filter(p => String(p.id) !== String(id));
                 localStorage.setItem('pearls_v2', JSON.stringify(pearls));
                 startPearlsLoop();
                 renderApp();
