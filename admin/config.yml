@@ -2,6 +2,7 @@ backend:
   name: github
   repo: vilenskytorah/torah-archive
   branch: main
+  auth_method: implicit   # זה החשוב!
 
 publish_mode: editorial_workflow
 
@@ -27,7 +28,7 @@ collections:
     fields:
       - {label: "כותרת", name: "title", widget: "string"}
       - {label: "סוג", name: "type", widget: "select", options: ["פרשה", "בבלי", "ירושלמי", "הלכה", "מועדים"]}
-      - {label: "חומש", name: "chumash", widget: "select", options: ["בראשית", "שמות", "ויקרא", "במדבר", "דברים"], required: false}
-      - {label: "פרשה", name: "parsha", widget: "string", required: false}
+      - {label: "חומש", name: "chumash", widget: "select", options: ["בראשית", "שמות", "ויקרא", "במדבר", "דברים"]}
+      - {label: "פרשה", name: "parsha", widget: "string"}
       - {label: "תאריך", name: "date", widget: "datetime"}
       - {label: "תוכן", name: "body", widget: "markdown"}
