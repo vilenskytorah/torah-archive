@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ page.title }} | {{ site.title }}</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- גופנים עבריים יפים -->
+  <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Assistant', system-ui, sans-serif;
+    }
+    h1, h2, h3, h4 {
+      font-family: 'Frank Ruhl Libre', serif;
+    }
+    .marquee {
+      animation: marquee 40s linear infinite;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+  </style>
+</head>
+<body class="bg-stone-50 text-stone-900 leading-relaxed">
+  
+  <!-- Navbar יבוא אחר כך -->
+  {% include navbar.html %}
+
+  <main>
+    {{ content }}
+  </main>
+
+  <!-- Footer יבוא אחר כך -->
+  {% include footer.html %}
+
+  <script>
+    // Tailwind script
+    tailwind.config = {
+      content: ["./**/*.html"],
+      theme: {
+        extend: {}
+      }
+    }
+  </script>
+  
+  <script src="/assets/js/main.js"></script>
+</body>
+</html>
