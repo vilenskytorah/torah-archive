@@ -2,70 +2,98 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>אוצר החידושים</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אוצר החידושים - מורשת לדורות</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .pearl-card-transition { transition: opacity 0.5s ease-in-out; opacity: 0; }
+        .pearl-card-transition.active { opacity: 1; }
+    </style>
 </head>
-<body class="bg-slate-50 p-6">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold mb-6 text-center">אוצר החידושים</h1>
-        
-        <div id="adminPanel" class="bg-white p-6 rounded-xl shadow mb-8">
-            <h2 class="font-bold mb-4">הוספת חידוש</h2>
-            <select id="mainCat" onchange="updateSubCats()" class="w-full p-2 border mb-2">
-                <option value="תורה">תורה (חומש)</option>
-                <option value="בבלי">תלמוד בבלי</option>
-                <option value="ירושלמי">תלמוד ירושלמי</option>
-                <option value="מועדים">חגים</option>
-            </select>
-            <select id="subCat" class="w-full p-2 border mb-2"></select>
-            <input type="text" id="title" placeholder="כותרת" class="w-full p-2 border mb-2">
-            <textarea id="content" placeholder="תוכן" class="w-full p-2 border mb-2"></textarea>
-            <button onclick="saveData()" class="bg-indigo-900 text-white w-full p-2 rounded">שמור</button>
+    <header class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white shadow-xl py-8 px-6 border-b-4 border-amber-500">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-right">
+                <h1 class="text-4xl font-extrabold text-amber-400 font-serif">אוצר החידושים</h1>
+            </div>
+            <div id="adminBadge" class="hidden bg-amber-500 text-slate-950 text-xs font-black px-4 py-1.5 rounded-full animate-pulse">מצב עריכה</div>
+        </div>
+    </header>
+
+    <div class="bg-gradient-to-b from-indigo-950 to-slate-900 text-white py-8 shadow-inner border-b-2 border-slate-950">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <div id="pearlDisplayContainer" class="min-h-[100px] flex items-center justify-center italic text-lg"></div>
+            <div class="mt-4 flex justify-center gap-4">
+                <button onclick="changePearl(-1)" class="bg-slate-700 px-4 py-1 rounded">הקודם</button>
+                <button onclick="changePearl(1)" class="bg-slate-700 px-4 py-1 rounded">הבא</button>
+            </div>
         </div>
     </div>
 
+    <main class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-4 gap-8 flex-grow">
+        <section id="adminFormSection" class="hidden lg:col-span-1">
+            <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
+                <h2 class="font-bold mb-4 border-b pb-2">הוספת תוכן</h2>
+                <select id="contentType" onchange="updateSubClassification()" class="w-full p-2 border mb-2"><option value="חידוש">דבר תורה</option><option value="פנינה">פנינה</option></select>
+                <input type="text" id="title" placeholder="כותרת" class="w-full p-2 border mb-2">
+                <select id="mainClass" onchange="updateSubClassification()" class="w-full p-2 border mb-2">
+                    <option value="תורה">חומש ופרשה</option><option value="בבלי">בבלי</option><option value="ירושלמי">ירושלמי</option><option value="מועדים">חגים</option>
+                </select>
+                <select id="subClass" class="w-full p-2 border mb-2"></select>
+                <textarea id="content" rows="4" class="w-full p-2 border mb-2" placeholder="תוכן..."></textarea>
+                <button onclick="saveContent()" class="w-full bg-indigo-900 text-white py-2 rounded">שמור</button>
+            </div>
+        </section>
+
+        <section id="displaySection" class="lg:col-span-4 space-y-10">
+            <div id="section-tora" class="grid md:grid-cols-2 gap-4"></div>
+            <div id="section-bavli" class="grid md:grid-cols-2 gap-4"></div>
+            <div id="section-yerushalmi" class="grid md:grid-cols-2 gap-4"></div>
+            <div id="section-moadim" class="grid md:grid-cols-2 gap-4"></div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center"><button onclick="toggleAdmin()" class="text-amber-500 underline">כניסת מנהל</button></footer>
+
     <script>
-        const categories = {
-            "תורה": {
-                "בראשית": ["בראשית", "נח", "לך לך", "וירא", "חיי שרה", "תולדות", "ויצא", "וישלח", "וישב", "מקץ", "ויגש", "ויחי"],
-                "שמות": ["שמות", "וארא", "בא", "בשלח", "יתרו", "משפטים", "תרומה", "תצווה", "כי תשא", "ויקהל", "פקודי"]
-                // ... אפשר להוסיף כאן את שאר הפרשיות
-            },
-            "בבלי": ["ברכות", "שבת", "עירובין", "פסחים"],
-            "מועדים": ["ראש השנה", "יום כיפור", "סוכות", "פסח", "שבועות"]
+        const DATA_MAP = {
+            "תורה": ["בראשית", "נח", "לך לך", "וירא", "חיי שרה", "תולדות", "ויצא", "וישלח", "וישב", "מקץ", "ויגש", "ויחי", "שמות", "וארא", "בא", "בשלח", "יתרו", "משפטים", "תרומה", "תצווה", "כי תשא", "ויקהל", "פקודי", "ויקרא", "צו", "שמיני", "תזריע", "מצורע", "אחרי מות", "קדושים", "אמור", "בהר", "בחוקותי", "במדבר", "נשא", "בהעלותך", "שלח", "קרח", "חקת", "בלק", "פנחס", "מטות", "מסעי", "דברים", "ואתחנן", "עקב", "ראה", "שופטים", "כי תצא", "כי תבוא", "נצבים", "וילך", "האזינו", "וזאת הברכה"],
+            "בבלי": ["ברכות", "שבת", "עירובין", "פסחים", "יומא", "סוכה", "ביצה", "ראש השנה", "תענית", "מגילה", "מועד קטן", "חגיגה", "יבמות", "כתובות", "נדרים", "נזיר", "סוטה", "גיטין", "קידושין", "בבא קמא", "בבא מציעא", "בבא בתרא", "סנהדרין", "מכות", "שבועות", "עבודה זרה", "הוריות", "זבחים", "מנחות", "חולין", "בכורות", "ערכין", "תמורה", "כריתות", "מעילה", "תמיד", "נידה"],
+            "מועדים": ["ראש השנה", "יום כיפור", "סוכות", "חנוכה", "פורים", "פסח", "שבועות", "תשעה באב"]
         };
 
-        function updateSubCats() {
-            const main = document.getElementById('mainCat').value;
-            const sub = document.getElementById('subCat');
-            sub.innerHTML = '';
-            
-            if(main === "תורה") {
-                Object.keys(categories.תורה).forEach(khomash => {
-                    categories.תורה[khomash].forEach(parasha => {
-                        sub.innerHTML += `<option value="${parasha}">${khomash} - ${parasha}</option>`;
-                    });
-                });
-            } else {
-                categories[main]?.forEach(item => sub.innerHTML += `<option value="${item}">${item}</option>`);
-            }
+        function fixDates() {
+            let items = [...JSON.parse(localStorage.getItem('chidushim_v2') || '[]'), ...JSON.parse(localStorage.getItem('pearls_v2') || '[]')];
+            items.forEach(i => i.hebrewDate = "כ״ז באייר תשפ״ו");
+            localStorage.setItem('chidushim_v2', JSON.stringify(JSON.parse(localStorage.getItem('chidushim_v2') || '[]')));
+        }
+        fixDates();
+
+        function updateSubClassification() {
+            const main = document.getElementById('mainClass').value;
+            const sub = document.getElementById('subClass');
+            sub.innerHTML = (DATA_MAP[main] || []).map(item => `<option value="${item}">${item}</option>`).join('');
         }
 
-        function saveData() {
-            let data = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
-            data.push({
-                main: document.getElementById('mainCat').value,
-                sub: document.getElementById('subCat').value,
-                title: document.getElementById('title').value,
-                content: document.getElementById('content').value,
-                date: new Date().toLocaleDateString('he-u-ca-hebrew') // תאריך עברי אמיתי
-            });
-            localStorage.setItem('chidushim_v2', JSON.stringify(data));
+        function saveContent() {
+            let type = document.getElementById('contentType').value;
+            let list = JSON.parse(localStorage.getItem(type === 'חידוש' ? 'chidushim_v2' : 'pearls_v2') || '[]');
+            list.push({ title: document.getElementById('title').value, content: document.getElementById('content').value, mainClass: document.getElementById('mainClass').value, subClass: document.getElementById('subClass').value, hebrewDate: "כ״ז באייר תשפ״ו" });
+            localStorage.setItem(type === 'חידוש' ? 'chidushim_v2' : 'pearls_v2', JSON.stringify(list));
             location.reload();
         }
 
-        updateSubCats(); // הרצה ראשונית
+        function toggleAdmin() {
+            document.getElementById('adminFormSection').classList.toggle('hidden');
+            document.getElementById('adminBadge').classList.toggle('hidden');
+        }
+
+        function changePearl(d) { /* לוגיקת גלגלת */ }
+        
+        updateSubClassification();
+        // רינדור ראשוני של כל התוכן...
     </script>
 </body>
 </html>
