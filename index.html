@@ -4,28 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>אוצר החידושים - מורשת לדורות</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         
-        /* אזור הגלגלת - מניעת שבירת שורות */
-        .marquee-viewport {
-            overflow: hidden;
-            white-space: nowrap;
-            display: flex;
-            position: relative;
-            width: 100%;
+        /* אפקט החלפה רכה של הפנינים */
+        .pearl-fade {
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
+            opacity: 0;
+            transform: translateY(5px);
         }
-        .marquee-content {
-            display: inline-flex;
-            gap: 4rem;
-            padding-right: 4rem;
+        .pearl-fade.active {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- תיבת חילוץ חירום חכמה למסננים ישנים -->
+    <!-- תיבת חילוץ חירום -->
     <div id="emergencyRecoverBox" class="bg-amber-500 text-slate-950 py-3 px-6 text-center font-bold text-sm shadow-md border-b-2 border-amber-600 animate-bounce flex justify-center items-center gap-3">
         <span>📢 המערכת זיהתה פריטים מהגרסה הקודמת שדורשים התאמה למבנה החדש</span>
         <button onclick="runDeepRecovery()" class="bg-slate-900 text-amber-400 px-4 py-1 rounded-lg hover:bg-slate-800 transition cursor-pointer shadow-md text-xs">
@@ -33,7 +30,7 @@
         </button>
     </div>
 
-    <!-- סרגל עליון יוקרתי -->
+    <!-- סרגל עליון -->
     <header class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white shadow-xl py-8 px-6 border-b-4 border-amber-500">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="text-center md:text-right">
@@ -46,15 +43,14 @@
         </div>
     </header>
 
-    <!-- גלגלת פנינים חכמה וחסינת תקלות -->
-    <div class="bg-indigo-900 text-white py-3 shadow-inner border-b border-indigo-950">
+    <!-- אזור פניני החכמה המתחלפות (המשודרג!) -->
+    <div class="bg-indigo-900 text-white py-4 shadow-inner border-b border-indigo-950">
         <div class="max-w-7xl mx-auto px-6">
-            <h2 class="text-xs font-bold text-amber-400 mb-1 tracking-widest uppercase">✨ פניני חכמה ואמרות קצרות (נעצר במעבר עכבר)</h2>
-            <div class="relative w-full bg-indigo-950/50 rounded-xl py-2.5 px-4 border border-indigo-800 flex items-center">
-                <div id="marqueeViewport" class="marquee-viewport" onmouseenter="pauseMarquee()" onmouseleave="resumeMarquee()">
-                    <div id="marqueeContent" class="marquee-content">
-                        <!-- הפנינים יישתלו כאן -->
-                    </div>
+            <h2 class="text-xs font-bold text-amber-400 mb-2 tracking-widest uppercase text-center md:text-right">✨ פניני חכמה ואמרות קצרות (מתחלף אוטומטית, נעצר במעבר עכבר)</h2>
+            <div class="relative w-full bg-indigo-950/60 rounded-xl py-4 px-6 border border-indigo-800 flex justify-center items-center min-h-[70px]" 
+                 onmouseenter="pausePearlRotation()" onmouseleave="resumePearlRotation()">
+                <div id="pearlDisplayContainer" class="w-full text-center flex justify-center items-center">
+                    <!-- הפנינה הפעילה תיכנס כאן דינמית -->
                 </div>
             </div>
         </div>
@@ -63,15 +59,12 @@
     <!-- מרכז האתר -->
     <main class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-4 gap-8 py-10 flex-grow w-full">
         
-        <!-- אזור הטופס (גלוי רק במצב מנהל) -->
+        <!-- טופס מנהל -->
         <section id="adminFormSection" class="hidden lg:col-span-1">
             <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200 sticky top-6">
-                <h2 class="text-lg font-bold text-slate-900 mb-4 pb-2 border-b-2 border-amber-500">
-                    הוספת תוכן חדש למאגר
-                </h2>
+                <h2 class="text-lg font-bold text-slate-900 mb-4 pb-2 border-b-2 border-amber-500">הוספת תוכן חדש למאגר</h2>
                 
                 <form id="torahForm" class="space-y-4">
-                    <!-- סוג תוכן -->
                     <div>
                         <label class="block text-xs font-bold text-indigo-900 mb-1 bg-indigo-50 p-1.5 rounded border border-indigo-100">🎯 לאן להעלות את התוכן הנוכחי?</label>
                         <select id="contentType" onchange="toggleFormFields()" class="w-full px-3 py-2 border-2 border-indigo-200 rounded-lg bg-white text-sm font-bold text-indigo-950 focus:border-indigo-500 focus:outline-none">
@@ -133,25 +126,20 @@
             </div>
         </section>
 
-        <!-- אזור התצוגה המפוצל לאזורים קבועים -->
+        <!-- אזור התצוגה המפוצל -->
         <section id="displaySection" class="lg:col-span-4 space-y-10">
-            
-            <!-- אזור חיפוש מהיר -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-3">
                 <span class="text-sm font-bold text-slate-700 shrink-0">🔍 חיפוש חופשי באוצר:</span>
                 <input type="text" id="mainSearchInput" oninput="renderApp()" placeholder="הקלד מילה לחיפוש מיידי בכל המדורים..." class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none bg-slate-50">
             </div>
 
-            <!-- מדור א': פרשת השבוע -->
             <div class="space-y-4">
                 <h3 class="text-xl font-extrabold text-slate-900 pb-2 border-b-2 border-amber-500 flex items-center gap-2 font-serif">
                     <span>📚 חידושים על חומש ופרשת השבוע</span>
-                    <span class="text-xs font-sans text-slate-400 font-normal">(מהחדש לישן)</span>
                 </h3>
                 <div id="section-tora" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
 
-            <!-- מדור ב': תלמוד בבלי -->
             <div class="space-y-4">
                 <h3 class="text-xl font-extrabold text-slate-900 pb-2 border-b-2 border-blue-500 flex items-center gap-2 font-serif">
                     <span>💡 חידושים על תלמוד בבלי</span>
@@ -159,7 +147,6 @@
                 <div id="section-bavli" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
 
-            <!-- מדור ג': תלמוד ירושלמי -->
             <div class="space-y-4">
                 <h3 class="text-xl font-extrabold text-slate-900 pb-2 border-b-2 border-teal-500 flex items-center gap-2 font-serif">
                     <span>🏛️ חידושים על תלמוד ירושלמי</span>
@@ -167,18 +154,16 @@
                 <div id="section-yerushalmi" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
 
-            <!-- מדור ד': חגים ומועדים -->
             <div class="space-y-4">
                 <h3 class="text-xl font-extrabold text-slate-900 pb-2 border-b-2 border-purple-500 flex items-center gap-2 font-serif">
                     <span>🍷 אמרות וחידושים על חגים ומועדים</span>
                 </h3>
                 <div id="section-moadim" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
-
         </section>
     </main>
 
-    <!-- חלונית מודאל לעריכת סיווגים -->
+    <!-- מודאל א': עריכת סיווג לחידושים -->
     <div id="editModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex justify-center items-center p-4 z-50">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
             <div class="bg-slate-900 text-white p-4 font-bold text-md border-b-2 border-amber-500 flex justify-between items-center">
@@ -187,7 +172,6 @@
             </div>
             <div class="p-6 space-y-4">
                 <input type="hidden" id="editItemId">
-                
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">סיווג ראשי מעודכן</label>
                     <select id="editMainClass" onchange="updateSubClassificationOptions('editMainClass', 'editChumashContainer', 'editSubClassContainer', 'editSubClassLabel', 'editSubClass')" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-sm">
@@ -198,7 +182,6 @@
                         <option value="כללי">ללא סיווג (כללי)</option>
                     </select>
                 </div>
-
                 <div id="editChumashContainer" class="hidden">
                     <label class="block text-xs font-bold text-slate-700 mb-1">חומש</label>
                     <select id="editChumash" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-sm">
@@ -209,19 +192,34 @@
                         <option value="דברים">דברים</option>
                     </select>
                 </div>
-
                 <div id="editSubClassContainer" class="hidden">
                     <label id="editSubClassLabel" class="block text-xs font-bold text-slate-700 mb-1">פירוט סיווג</label>
                     <select id="editSubClass" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-sm"></select>
                 </div>
-
                 <div class="flex gap-3 pt-4 border-t border-slate-100">
-                    <button onclick="saveClassificationEdit()" class="flex-1 bg-indigo-900 hover:bg-slate-900 text-white font-bold py-2 rounded-lg transition text-sm cursor-pointer border-b-2 border-amber-500">
-                        עדכן סיווג במאגר
-                    </button>
-                    <button onclick="closeEditModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-lg transition text-sm cursor-pointer">
-                        ביטול
-                    </button>
+                    <button onclick="saveClassificationEdit()" class="flex-1 bg-indigo-900 hover:bg-slate-900 text-white font-bold py-2 rounded-lg transition text-sm cursor-pointer border-b-2 border-amber-500">עדכן סיווג במאגר</button>
+                    <button onclick="closeEditModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-lg transition text-sm cursor-pointer">ביטול</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- מודאל ב': עריכת תוכן פנינה מהגלגלת -->
+    <div id="editPearlModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex justify-center items-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
+            <div class="bg-indigo-900 text-white p-4 font-bold text-md border-b-2 border-amber-500 flex justify-between items-center">
+                <span>✍️ עריכת פנינת חכמה קצרה</span>
+                <button onclick="closeEditPearlModal()" class="text-slate-400 hover:text-white text-xl cursor-pointer">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="editPearlId">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">תוכן הפנינה המעודכן</label>
+                    <textarea id="editPearlContent" rows="4" required class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-sm leading-relaxed"></textarea>
+                </div>
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button onclick="savePearlEdit()" class="flex-1 bg-indigo-900 hover:bg-slate-900 text-white font-bold py-2 rounded-lg transition text-sm cursor-pointer border-b-2 border-amber-500">שמור שינויים פנינה</button>
+                    <button onclick="closeEditPearlModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-lg transition text-sm cursor-pointer">ביטול</button>
                 </div>
             </div>
         </div>
@@ -243,59 +241,67 @@
         
         let chidushim = JSON.parse(localStorage.getItem('chidushim_v2')) || [];
         let pearls = JSON.parse(localStorage.getItem('pearls_v2')) || [];
+        let isAdmin = false;
 
-        let marqueeId = null;
-        let isMarqueePaused = false;
-        let currentScrollPos = 0;
+        // ניהול רוטציית פנינים חכמה
+        let currentPearlIndex = 0;
+        let pearlIntervalId = null;
+        let isPearlPaused = false;
 
-        // פונקציה לייצור תאריך עברי אותנטי ומלא בלשון הקודש (אותיות ולא מספרים)
+        function convertNumToHebrewLetters(num) {
+            let n = parseInt(num);
+            if (isNaN(n) || n <= 0) return "";
+            
+            const daysMapping = {
+                1: "א׳", 2: "ב׳", 3: "ג׳", 4: "ד׳", 5: "ה׳", 6: "ו׳", 7: "ז׳", 8: "ח׳", 9: "ט׳", 10: "י׳",
+                11: "י״א", 12: "י״ב", 13: "י״ג", 14: "י״ו", 15: "ט״ו", 16: "ט״ז", 17: "י״ז", 18: "י״ח", 19: "י״ט", 20: "כ׳",
+                21: "כ״א", 22: "כ״ב", 23: "כ״ג", 24: "כ״ד", 25: "כ״ה", 26: "כ״ו", 27: "כ״ז", 28: "כ״ח", 29: "כ״ט", 30: "ל׳"
+            };
+            if (daysMapping[n]) return daysMapping[n];
+
+            let parts = [];
+            if (n >= 5000) n -= 5000;
+            
+            const hebrewMatrix = [
+                { value: 400, letter: "ת" }, { value: 300, letter: "ש" }, { value: 200, letter: "ר" }, { value: 100, letter: "ק" },
+                { value: 90, letter: "צ" }, { value: 80, letter: "פ" }, { value: 70, letter: "ע" }, { value: 60, letter: "ס" },
+                { value: 50, letter: "נ" }, { value: 40, letter: "מ" }, { value: 30, letter: "ל" }, { value: 20, letter: "כ" },
+                { value: 10, letter: "י" }, { value: 9, letter: "ט" }, { value: 8, letter: "ח" }, { value: 7, letter: "ז" },
+                { value: 6, letter: "ו" }, { value: 5, letter: "ה" }, { value: 4, letter: "ד" }, { value: 3, letter: "ג" },
+                { value: 2, letter: "ב" }, { value: 1, letter: "א" }
+            ];
+
+            for (let item of hebrewMatrix) {
+                while (n >= item.value) {
+                    if (n === 15) { parts.push("טו"); n -= 15; break; }
+                    if (n === 16) { parts.push("טז"); n -= 16; break; }
+                    parts.push(item.letter);
+                    n -= item.value;
+                }
+            }
+
+            let word = parts.join("");
+            if (word.length === 1) return word + "׳";
+            return word.slice(0, -1) + "״" + word.slice(-1);
+        }
+
         function generateHebrewDateString() {
             try {
                 const options = { calendar: 'hebrew', year: 'numeric', month: 'long', day: 'numeric' };
                 let formatter = new Intl.DateTimeFormat('he-IL-u-ca-hebrew', options);
                 let parts = formatter.formatToParts(new Date());
                 
-                let dayStr = parts.find(p => p.type === 'day').value;
+                let dayVal = parts.find(p => p.type === 'day').value;
                 let monthStr = parts.find(p => p.type === 'month').value;
-                let yearStr = parts.find(p => p.type === 'year').value;
+                let yearVal = parts.find(p => p.type === 'year').value;
 
-                // הפיכת מספר היום לאותיות
-                const numToHeb = (num) => {
-                    const units = ["", "א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ז׳", "ח׳", "ט׳", "י׳", "יא", "יב", "יג", "יד", "טו", "טז", "יז", "יח", "יט", "כ׳", "כא", "כב", "כג", "כד", "כה", "כו", "כז", "כח", "כט", "ל׳"];
-                    let parsed = parseInt(num);
-                    if(parsed === 15) return "ט״ו";
-                    if(parsed === 16) return "ט״ז";
-                    let res = units[parsed] || num;
-                    if (!res.includes('״') && res.length > 2) {
-                        res = res.slice(0, -1) + '״' + res.slice(-1);
-                    }
-                    return res;
-                };
+                let formattedDay = convertNumToHebrewLetters(dayVal);
+                let formattedYear = convertNumToHebrewLetters(yearVal);
+                let formattedMonth = monthStr.startsWith('ב') ? monthStr : 'ב' + monthStr;
 
-                let formattedDay = numToHeb(dayStr);
-                
-                // התאמת אות יחס לחודש במידת הצורך
-                let formattedMonth = monthStr;
-                if (!formattedMonth.startsWith('ב')) {
-                    formattedMonth = 'ב' + formattedMonth;
-                }
-
-                return `${formattedDay} ${formattedMonth} ${yearStr}`;
+                return `${formattedDay} ${formattedMonth} ${formattedYear}`;
             } catch(e) {
-                return "ט׳ בסיון תשפ״ו"; // ברירת מחדל חכמה לזמן הנוכחי במידה ויש שגיאה בדפדפן ישן
-            }
-        }
-
-        async function fetchHebrewDate() {
-            try {
-                const response = await fetch('https://www.hebcal.com/converter?cfg=json&g2h=1&strict=1');
-                if (!response.ok) throw new Error();
-                const data = await response.json();
-                
-                // המרת הפלט מהשרת למבנה אותיות מדויק
-                return generateHebrewDateString();
-            } catch (error) {
-                return generateHebrewDateString(); 
+                return "ט׳ בסיון תשפ״ו"; 
             }
         }
 
@@ -323,21 +329,16 @@
                         if (!Array.isArray(parsed)) parsed = [parsed];
                         
                         parsed.forEach(c => {
-                            let targetMainClass = c.mainClass || 'תורה';
-                            let targetSubClass = c.subClass || '';
-                            let targetChumash = c.chumash || '';
-
                             let existingIndex = chidushim.findIndex(exist => exist.content === (c.content || c.text));
                             if (existingIndex === -1) {
-                                let secureId = "id_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
                                 chidushim.push({
-                                    id: secureId,
+                                    id: "id_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
                                     title: c.title || 'חידוש משוחזר',
                                     hebrewDate: generateHebrewDateString(),
                                     author: c.author || 'דוד וילנסקי',
-                                    mainClass: targetMainClass,
-                                    chumash: targetChumash,
-                                    subClass: targetSubClass,
+                                    mainClass: c.mainClass || 'תורה',
+                                    chumash: c.chumash || '',
+                                    subClass: c.subClass || '',
                                     content: c.content || c.text || '',
                                     timestamp: Date.now()
                                 });
@@ -351,14 +352,11 @@
             renderApp();
         }
 
-        let isAdmin = false;
-
         document.getElementById('torahForm').addEventListener('submit', handleFormSubmit);
-        
         fillSelect(document.getElementById('subClass'), PARASHOT);
         checkEmergencyStatus();
         renderApp();
-        initScrollMarquee();
+        startPearlRotation();
 
         function toggleFormFields() {
             const type = document.getElementById('contentType').value;
@@ -366,14 +364,14 @@
                 document.getElementById('titleField').style.display = 'none';
                 document.getElementById('title').removeAttribute('required');
                 document.getElementById('classificationFields').style.display = 'none';
-                document.getElementById('contentLabel').innerHTML = "✍️ תוכן הפנינה הקצרה (יופיע בגלגלת למעלה)";
-                document.getElementById('content').placeholder = "הקלד פנינה קצרה, משפט השראה או אמרה תמציתית...";
+                document.getElementById('contentLabel').innerHTML = "✍️ תוכן הפנינה הקצרה (תוצג במלואה בחלק העליון)";
+                document.getElementById('content').placeholder = "הקלד פנינה קצרה...";
             } else {
                 document.getElementById('titleField').style.display = 'block';
                 document.getElementById('title').setAttribute('required', 'true');
                 document.getElementById('classificationFields').style.display = 'block';
                 document.getElementById('contentLabel').innerHTML = "✍️ תוכן החידוש";
-                document.getElementById('content').placeholder = "הקלד כאן את תוכן המאמר או החידוש בהרחבה...";
+                document.getElementById('content').placeholder = "הקלד כאן את תוכן המאמר...";
             }
         }
 
@@ -413,12 +411,12 @@
             });
         }
 
-        async function handleFormSubmit(e) {
+        function handleFormSubmit(e) {
             e.preventDefault();
             const submitBtn = e.target.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
 
-            const hebrewDateStr = await fetchHebrewDate();
+            const hebrewDateStr = generateHebrewDateString();
             const type = document.getElementById('contentType').value;
             const authorName = document.getElementById('author').value || 'דוד וילנסקי';
 
@@ -430,10 +428,9 @@
                     hebrewDate: hebrewDateStr
                 });
                 localStorage.setItem('pearls_v2', JSON.stringify(pearls));
-                
                 document.getElementById('content').value = '';
-                initScrollMarquee();
-                alert('הפנינה נשמרה בהצלחה ותרוץ בגלגלת העליונה!');
+                currentPearlIndex = 0; // קופץ ישירות לפנינה החדשה
+                alert('הפנינה נשמרה בהצלחה!');
             } else {
                 const mainClass = document.getElementById('mainClass').value;
                 chidushim.unshift({
@@ -448,74 +445,96 @@
                     timestamp: Date.now()
                 });
                 localStorage.setItem('chidushim_v2', JSON.stringify(chidushim));
-                
                 document.getElementById('title').value = '';
                 document.getElementById('content').value = '';
-                alert('החידוש נשמר בהצלחה במדור המתאים!');
+                alert('החידוש נשמר בהצלחה!');
             }
 
             submitBtn.disabled = false;
+            startPearlRotation();
             renderApp();
         }
 
-        /* מנגנון גלגלת מתוקן לחלוטין - גולל מימין לשמאל ומציג את המשפט כסדרו */
-        function initScrollMarquee() {
-            if(marqueeId) cancelAnimationFrame(marqueeId);
+        // מערכת הצגה וחלופת פנינים ככרטיסיה שלמה עם אנימציה (חדש ומותאם לבקשתך!)
+        function startPearlRotation() {
+            if (pearlIntervalId) clearInterval(pearlIntervalId);
             
-            const content = document.getElementById('marqueeContent');
-            const viewport = document.getElementById('marqueeViewport');
-            
+            renderCurrentPearl();
+
+            // החלפה אוטומטית כל 6 שניות
+            pearlIntervalId = setInterval(() => {
+                if (!isPearlPaused && pearls.length > 1) {
+                    currentPearlIndex = (currentPearlIndex + 1) % pearls.length;
+                    renderCurrentPearl();
+                }
+            }, 6000);
+        }
+
+        function renderCurrentPearl() {
+            const container = document.getElementById('pearlDisplayContainer');
             if (pearls.length === 0) {
-                content.innerHTML = `<span class="text-slate-400 text-sm italic py-1">עדיין לא הוכנסו פנינים למאגר...</span>`;
+                container.innerHTML = `<span class="text-slate-400 text-sm italic">עדיין לא הוכנסו פנינים למאגר...</span>`;
                 return;
             }
 
-            let htmlStr = '';
-            pearls.forEach(p => {
-                htmlStr += `
-                    <div class="flex items-center gap-2 text-sm md:text-base select-none" dir="rtl">
-                        <span class="text-amber-400 font-serif text-xl">"</span>
-                        <span class="text-slate-100 font-medium">${p.content}</span>
-                        <span class="text-amber-400 font-serif text-xl">"</span>
-                        <span class="text-xs text-indigo-300 bg-indigo-950 px-2 py-0.5 rounded-sm shrink-0">(${p.author} - ${p.hebrewDate})</span>
-                        ${isAdmin ? `<button onclick="deletePearl('${p.id}')" class="text-red-400 hover:text-red-300 text-xs mr-1 font-bold cursor-pointer font-sans shrink-0">[מחק]</button>` : ''}
+            // אם האינדקס איכשהו יצא מגבולות המערך עקב מחיקה
+            if (currentPearlIndex >= pearls.length) currentPearlIndex = 0;
+            const p = pearls[currentPearlIndex];
+
+            // יצירת מבנה הכרטיסייה המלאה
+            container.innerHTML = `
+                <div id="pearlWrapper" class="pearl-fade w-full max-w-4xl flex flex-col md:flex-row items-center justify-center gap-3 text-center md:text-right" dir="rtl">
+                    <div class="text-base md:text-lg font-medium text-slate-100 px-4">
+                        <span class="text-amber-400 font-serif text-2xl ml-1">"</span>${p.content}<span class="text-amber-400 font-serif text-2xl mr-1">"</span>
+                        <span class="text-xs text-indigo-300 bg-indigo-950/80 px-2.5 py-1 rounded-md border border-indigo-800/40 inline-block mr-2">
+                            (${p.author} - ${p.hebrewDate})
+                        </span>
+                        ${isAdmin ? `
+                            <button onclick="openEditPearlModal('${p.id}'); event.stopPropagation();" class="text-amber-400 hover:text-amber-300 text-xs mr-3 font-bold cursor-pointer font-sans">[✍️ ערוך פנינה]</button>
+                            <button onclick="deletePearl('${p.id}'); event.stopPropagation();" class="text-red-400 hover:text-red-300 text-xs mr-1 font-bold cursor-pointer font-sans">[מחק]</button>
+                        ` : ''}
                     </div>
-                `;
-            });
+                </div>
+            `;
 
-            // משכפלים כדי לשמור על רצף תנועה
-            content.innerHTML = htmlStr + htmlStr + htmlStr;
-            
-            // ב-RTL, הדפדפן מתחיל ב-scrollLeft = 0 (הכי ימני) וגלילה שמאלה מורידה ערכים (לכיוון שלילי).
-            currentScrollPos = 0;
-            viewport.scrollLeft = 0;
-
-            function scrollStep() {
-                if (!isMarqueePaused) {
-                    // מורידים פיקסלים כדי לנוע שמאלה במרחב ה-RTL של הדפדפן
-                    currentScrollPos -= 1.2; 
-                    
-                    const singleSetWidth = content.scrollWidth / 3;
-                    
-                    // כשהגענו לסוף הסט הראשון, מאפסים חזרה ל-0 בצורה חלקה
-                    if (Math.abs(currentScrollPos) >= singleSetWidth) {
-                        currentScrollPos = 0;
-                    }
-                    
-                    viewport.scrollLeft = currentScrollPos;
-                }
-                marqueeId = requestAnimationFrame(scrollStep);
-            }
-            
-            marqueeId = requestAnimationFrame(scrollStep);
+            // הפעלת האנימציה מיד לאחר ההזרקה ל-DOM
+            setTimeout(() => {
+                const wrapper = document.getElementById('pearlWrapper');
+                if (wrapper) wrapper.classList.add('active');
+            }, 50);
         }
 
-        function pauseMarquee() { isMarqueePaused = true; }
-        function resumeMarquee() { isMarqueePaused = false; }
+        function pausePearlRotation() { isPearlPaused = true; }
+        function resumePearlRotation() { isPearlPaused = false; }
+
+        function openEditPearlModal(id) {
+            const pearl = pearls.find(p => String(p.id) === String(id));
+            if (!pearl) return;
+
+            document.getElementById('editPearlId').value = id;
+            document.getElementById('editPearlContent').value = pearl.content;
+            document.getElementById('editPearlModal').classList.remove('hidden');
+        }
+
+        function closeEditPearlModal() {
+            document.getElementById('editPearlModal').classList.add('hidden');
+        }
+
+        function savePearlEdit() {
+            const id = document.getElementById('editPearlId').value;
+            const newContent = document.getElementById('editPearlContent').value;
+            const index = pearls.findIndex(p => String(p.id) === String(id));
+
+            if (index !== -1 && newContent.trim() !== '') {
+                pearls[index].content = newContent;
+                localStorage.setItem('pearls_v2', JSON.stringify(pearls));
+                closeEditPearlModal();
+                renderCurrentPearl();
+            }
+        }
 
         function renderApp() {
             const searchText = document.getElementById('mainSearchInput').value.toLowerCase();
-            
             const containers = {
                 'תורה': document.getElementById('section-tora'),
                 'בבלי': document.getElementById('section-bavli'),
@@ -524,9 +543,7 @@
             };
 
             Object.values(containers).forEach(c => c.innerHTML = '');
-
             const sortedChidushim = [...chidushim].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-
             let countPerSection = { 'תורה': 0, 'בבלי': 0, 'ירושלמי': 0, 'מועדים': 0 };
 
             sortedChidushim.forEach(item => {
@@ -595,7 +612,6 @@
 
             document.getElementById('editItemId').value = id;
             document.getElementById('editMainClass').value = item.mainClass || 'תורה';
-            
             updateSubClassificationOptions('editMainClass', 'editChumashContainer', 'editSubClassContainer', 'editSubClassLabel', 'editSubClass');
             
             if (item.mainClass === 'תורה') {
@@ -604,7 +620,6 @@
             } else if (item.mainClass !== 'כללי') {
                 document.getElementById('editSubClass').value = item.subClass || '';
             }
-
             document.getElementById('editModal').classList.remove('hidden');
         }
 
@@ -615,13 +630,12 @@
         function saveClassificationEdit() {
             const id = document.getElementById('editItemId').value;
             const mainClass = document.getElementById('editMainClass').value;
-            
             const index = chidushim.findIndex(c => String(c.id) === String(id));
+            
             if (index !== -1) {
                 chidushim[index].mainClass = mainClass;
                 chidushim[index].chumash = mainClass === 'תורה' ? document.getElementById('editChumash').value : '';
                 chidushim[index].subClass = mainClass !== 'כללי' ? document.getElementById('editSubClass').value : '';
-                
                 localStorage.setItem('chidushim_v2', JSON.stringify(chidushim));
                 closeEditModal();
                 renderApp();
@@ -648,7 +662,7 @@
                 document.getElementById('adminFormSection').classList.add('hidden');
                 document.getElementById('displaySection').classList.replace('lg:col-span-3', 'lg:col-span-4');
             }
-            initScrollMarquee();
+            renderCurrentPearl();
             renderApp();
         }
 
@@ -664,8 +678,8 @@
             if(confirm('למחוק את הפנינה?')) {
                 pearls = pearls.filter(p => String(p.id) !== String(id));
                 localStorage.setItem('pearls_v2', JSON.stringify(pearls));
-                initScrollMarquee();
-                renderApp();
+                currentPearlIndex = 0;
+                renderCurrentPearl();
             }
         }
     </script>
