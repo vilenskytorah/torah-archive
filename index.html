@@ -1,22 +1,26 @@
 ---
-title: אוצר תורה - וילנסקי
+title: אוצר תורה
 layout: default
 ---
 
-<div class="max-w-7xl mx-auto px-6 py-12">
+<div class="max-w-7xl mx-auto px-6 py-12 text-center">
 
-  <!-- כפתור מנהל -->
-  <div class="text-center mb-10">
-    <a href="/torah-archive/admin/" 
-       class="inline-flex items-center gap-3 bg-amber-800 hover:bg-amber-900 text-white font-medium text-lg px-10 py-4 rounded-2xl transition-all">
-      ✍️ כניסה לאזור המנהל
+  <h1 class="text-5xl font-bold text-amber-900 mb-4">אוצר תורה</h1>
+  <p class="text-xl text-amber-800 mb-12">חידושי תורה • פנינים • מורשת לדורות</p>
+
+  <!-- כפתורים מהירים -->
+  <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+    <a href="https://github.com/vilenskytorah/torah-archive/new/main/_pninim?filename=pnina-<%= Date.now() %>.md" 
+       class="bg-amber-700 hover:bg-amber-800 text-white font-medium px-8 py-4 rounded-2xl text-lg inline-flex items-center gap-2">
+      ✨ הוסף פנינה חדשה
+    </a>
+    
+    <a href="https://github.com/vilenskytorah/torah-archive/new/main/_chidushim?filename=chidush-<%= Date.now() %>.md" 
+       class="bg-amber-800 hover:bg-amber-900 text-white font-medium px-8 py-4 rounded-2xl text-lg inline-flex items-center gap-2">
+      ✍️ הוסף חידוש חדש
     </a>
   </div>
 
-  <header class="text-center mb-16">
-    <h1 class="text-5xl font-bold text-amber-900">אוצר תורה</h1>
-    <p class="text-xl text-amber-800 mt-4">מורשת משפחת וילנסקי לדורות</p>
-  </header>
+  <p class="text-gray-600">לחץ על הכפתורים למעלה כדי להוסיף תוכן ישירות מהטלפון</p>
 
-  <p class="text-center text-gray-600">האתר בבנייה...</p>
 </div>
