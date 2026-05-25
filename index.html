@@ -75,7 +75,7 @@
                         <hr class="border-slate-100">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">סיווג ראשי</label>
-                            <select id="mainClass" onchange="updateSubClassificationOptions()" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-sm">
+                            <select id="mainClass" onchange="updateSubClassificationOptions('mainClass', 'chumashContainer', 'subClassContainer', 'subClassLabel', 'subClass')" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-sm">
                                 <option value="כללי">ללא סיווג (כללי)</option>
                                 <option value="תורה">חומש ופרשה</option>
                                 <option value="בבלי">תלמוד בבלי</option>
@@ -161,6 +161,55 @@
         </section>
     </main>
 
+    <!-- 🌟 חלונית מודאל לעריכת סיווגים (מוסתרת כברירת מחדל) -->
+    <div id="editModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex justify-center items-center p-4 z-50 animate-fade-in">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-scale-in">
+            <div class="bg-slate-900 text-white p-4 font-bold text-md border-b-2 border-amber-500 flex justify-between items-center">
+                <span>✍️ עריכת סיווג דבר תורה</span>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-xl cursor-pointer">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="editItemId">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">סיווג ראשי מעודכן</label>
+                    <select id="editMainClass" onchange="updateSubClassificationOptions('editMainClass', 'editChumashContainer', 'editSubClassContainer', 'editSubClassLabel', 'editSubClass')" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-sm">
+                        <option value="כללי">ללא סיווג (כללי)</option>
+                        <option value="תורה">חומש ופרשה</option>
+                        <option value="בבלי">תלמוד בבלי</option>
+                        <option value="ירושלמי">תלמוד ירושלמי</option>
+                        <option value="מועדים">חגים ומועדים</option>
+                    </select>
+                </div>
+
+                <div id="editChumashContainer" class="hidden">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">חומש</label>
+                    <select id="editChumash" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-sm">
+                        <option value="בראשית">בראשית</option>
+                        <option value="שמות">שמות</option>
+                        <option value="ויקרא">ויקרא</option>
+                        <option value="במדבר">במדבר</option>
+                        <option value="דברים">דברים</option>
+                    </select>
+                </div>
+
+                <div id="editSubClassContainer" class="hidden">
+                    <label id="editSubClassLabel" class="block text-xs font-bold text-slate-700 mb-1">פירוט סיווג</label>
+                    <select id="editSubClass" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-sm"></select>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button onclick="saveClassificationEdit()" class="flex-1 bg-indigo-900 hover:bg-slate-900 text-white font-bold py-2 rounded-lg transition text-sm cursor-pointer border-b-2 border-amber-500">
+                        עדכן סיווג במאגר
+                    </button>
+                    <button onclick="closeEditModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-lg transition text-sm cursor-pointer">
+                        ביטול
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="bg-slate-900 border-t-2 border-amber-500 text-slate-400 py-6 px-6 text-center text-xs mt-auto">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <span class="font-serif">© אוצר החידושים המשפחתי - למידה, יראת שמיים והנצחת התורה לדורות עולם.</span>
@@ -192,7 +241,6 @@
             }
         }
 
-        // 🛠️ פונקציית תיקון מסננים ושחזור אגרסיבית
         function runDeepRecovery() {
             let totalRecovered = 0;
             const keysToScan = ['chidushim', 'torahData', 'savedData', 'chidushim_v2'];
@@ -205,12 +253,10 @@
                         if (!Array.isArray(parsed)) parsed = [parsed];
                         
                         parsed.forEach(c => {
-                            // מנרמלים את המסננים הישנים שיתאימו למבנה החדש
                             let targetMainClass = c.mainClass || 'כללי';
                             let targetSubClass = c.subClass || '';
                             let targetChumash = c.chumash || '';
 
-                            // אם הסיווג הישן לא מוכר במערכת החדשה - הופכים ל'כללי' כדי שלא ייעלם
                             if (targetMainClass === 'תורה' && targetSubClass && !PARASHOT.includes(targetSubClass)) {
                                 targetMainClass = 'כללי';
                                 targetSubClass = '';
@@ -220,7 +266,6 @@
                                 targetSubClass = '';
                             }
 
-                            // מניעת כפילויות לפי תוכן הטקסט
                             let existingIndex = chidushim.findIndex(exist => exist.content === (c.content || c.text));
                             
                             if (existingIndex === -1) {
@@ -236,7 +281,6 @@
                                 });
                                 totalRecovered++;
                             } else {
-                                // אם הוא קיים אך המסננים שלו היו שבורים - נתקן אותו במקום
                                 chidushim[existingIndex].mainClass = targetMainClass;
                                 chidushim[existingIndex].subClass = targetSubClass;
                                 chidushim[existingIndex].chumash = targetChumash;
@@ -286,12 +330,13 @@
             }
         }
 
-        function updateSubClassificationOptions() {
-            const main = document.getElementById('mainClass').value;
-            const subContainer = document.getElementById('subClassContainer');
-            const subLabel = document.getElementById('subClassLabel');
-            const subSelect = document.getElementById('subClass');
-            const chumashContainer = document.getElementById('chumashContainer');
+        // פונקציית עדכון אפשרויות דינמית - מותאמת גם לטופס הרגיל וגם לחלונית העריכה
+        function updateSubClassificationOptions(mainId, chumashContId, subContId, subLabelId, subSelectId) {
+            const main = document.getElementById(mainId).value;
+            const chumashContainer = document.getElementById(chumashContId);
+            const subContainer = document.getElementById(subContId);
+            const subLabel = document.getElementById(subLabelId);
+            const subSelect = document.getElementById(subSelectId);
 
             chumashContainer.classList.add('hidden');
             subContainer.classList.add('hidden');
@@ -412,10 +457,7 @@
             container.innerHTML = '';
 
             const filtered = chidushim.filter(c => {
-                // אם מחפשים 'הכל', או שהמדור מתאים בדיוק
                 let matchMain = (filterMain === 'הכל' || c.mainClass === filterMain);
-                
-                // טיפול בחידושים ישנים: אם הם לא קיבלו סיווג ראשי תקין, נציג אותם תחת 'כללי' או תחת 'הכל'
                 if (!c.mainClass || c.mainClass === '') {
                     matchMain = (filterMain === 'הכל' || filterMain === 'כללי');
                 }
@@ -471,11 +513,57 @@
                     </div>
                     <div class="mt-6 pt-3 border-t border-slate-100 flex justify-between items-center text-xs text-slate-500">
                         <span>נכתב ע"י: <strong class="text-slate-800 font-medium">${item.author}</strong></span>
-                        ${isAdmin ? `<button onclick="deleteChidush(${item.id})" class="text-red-600 font-bold">[מחק]</button>` : ''}
+                        ${isAdmin ? `
+                            <div class="flex gap-2">
+                                <button onclick="openEditModal(${item.id})" class="text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer">✍️ ערוך סיווג</button>
+                                <button onclick="deleteChidush(${item.id})" class="text-red-600 font-bold cursor-pointer">[מחק]</button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
                 container.appendChild(card);
             });
+        }
+
+        // 🛠️ פונקציות ניהול המודאל לעריכת סיווגים
+        function openEditModal(id) {
+            const item = chidushim.find(c => c.id === id);
+            if (!item) return;
+
+            document.getElementById('editItemId').value = id;
+            document.getElementById('editMainClass').value = item.mainClass || 'כללי';
+            
+            // טעינת תפריטי הבחירה המשניים
+            updateSubClassificationOptions('editMainClass', 'editChumashContainer', 'editSubClassContainer', 'editSubClassLabel', 'editSubClass');
+            
+            if (item.mainClass === 'תורה') {
+                document.getElementById('editChumash').value = item.chumash || 'בראשית';
+                document.getElementById('editSubClass').value = item.subClass || PARASHOT[0];
+            } else if (item.mainClass !== 'כללי') {
+                document.getElementById('editSubClass').value = item.subClass || '';
+            }
+
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function saveClassificationEdit() {
+            const id = parseFloat(document.getElementById('editItemId').value);
+            const mainClass = document.getElementById('editMainClass').value;
+            
+            const index = chidushim.findIndex(c => c.id === id);
+            if (index !== -1) {
+                chidushim[index].mainClass = mainClass;
+                chidushim[index].chumash = mainClass === 'תורה' ? document.getElementById('editChumash').value : '';
+                chidushim[index].subClass = mainClass !== 'כללי' ? document.getElementById('editSubClass').value : '';
+                
+                localStorage.setItem('chidushim_v2', JSON.stringify(chidushim));
+                closeEditModal();
+                renderApp();
+            }
         }
 
         function updateAuthorFilterOptions() {
@@ -503,7 +591,7 @@
                     document.getElementById('adminBadge').classList.remove('hidden');
                     document.getElementById('adminFormSection').classList.remove('hidden');
                     document.getElementById('displaySection').classList.replace('lg:col-span-4', 'lg:col-span-3');
-                    updateSubClassificationOptions();
+                    updateSubClassificationOptions('mainClass', 'chumashContainer', 'subClassContainer', 'subClassLabel', 'subClass');
                 } else if (pass !== null) {
                     alert("סיסמה שגויה!");
                 }
